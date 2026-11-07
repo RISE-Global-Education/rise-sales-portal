@@ -172,7 +172,7 @@
           <ul>
             <li>A meeting counts only if it is recorded on Granola <b>or</b> the post-call sequence was sent through HubSpot.</li>
             <li>Closed Won = deals in the Sales Pipeline's Closed Won stage.</li>
-            <li>Overdue tasks are rebuilt from HubSpot task due and completion times: a task is overdue on a day if it was past due and not yet completed by the end of that day.</li>
+            <li>Overdue Tasks = tasks overdue right now (not completed and past their due time in HubSpot). Pending, created and completed tasks are not shown.</li>
             <li>Coloured chips use the sheet's targets: Portal 80%+, 20-min calls 50%+, average call 20+ min, conversion 30%+.</li>
             <li>All dates are in India time (IST).</li>
           </ul>
@@ -200,7 +200,7 @@ const HINTS = {
   // shared
   'Team Member': 'The sales rep (or the Team total).', 'Person': 'The sales rep.', 'Date': 'The day (India time).',
   // compliance
-  'Avg Overdue Tasks': 'Average, over each day in the selected dates, of how many of the rep’s tasks were past due and not yet completed at the end of that day (rebuilt from HubSpot task due and completion times).',
+  'Overdue Tasks': 'The rep’s tasks that are overdue right now: not completed and past their due time in HubSpot. It does not depend on the selected dates.',
   'Granola Compliance': 'Meetings recorded on Granola ÷ meetings taken.',
   'Post-Call Compliance': 'Recorded calls where the post-call sequence was sent within 7 days ÷ recorded calls.',
   'Portal Compliance': 'Granola notes that mention the student portal ÷ all Granola notes. Target 80%+.',
@@ -211,7 +211,6 @@ const HINTS = {
   'Conversion Rate': 'Deals closed ÷ meetings taken. Target 30%+.',
   // daily
   'No of Meets Taken': 'Meetings taken that day (Granola-recorded or post-call sent).',
-  'Overdue Tasks (Count)': 'How many of the person’s tasks were past due and not yet completed at the end of that day.',
   'Granola Recorded': 'Yes = every meeting taken was recorded; No = at least one wasn’t; NA = no meetings.',
   'Post-Call Sequence Sent': 'Yes = every recorded call got the post-call sequence; No = at least one is missing; NA = no recorded calls.',
   // tracker
@@ -224,9 +223,6 @@ const HINTS = {
   'Contacts': 'HubSpot contacts created in the selected dates and assigned to the rep.', 'Booked Call': 'Those contacts who booked a call through HubSpot’s meetings tool.',
   'Lead-to-Meeting %': 'Contacts who booked a call ÷ contacts.', 'Close Rate (of meetings)': 'Closed Won ÷ meetings taken.', 'Close Rate (of contacts)': 'Closed Won ÷ contacts.',
   'Post-Call Sent': 'Recorded calls where the post-call sequence was sent.', 'Post-Call Pending': 'Recorded calls where it hasn’t been sent yet.',
-  'Tasks Created': 'Tasks created in the selected dates.', 'Tasks Completed': 'Of those, tasks marked completed.',
-  'Tasks Pending': 'Of those, not completed and not yet due.', 'Tasks Overdue': 'Of those, not completed and already past due.',
-  'Overdue at End of Range': 'All of the person’s tasks (whenever created) that were past due and not completed at the end of the last selected day (or right now, if that day is today).',
   'Portal Mentioned': 'Granola notes that mention the student portal.', 'Avg Duration (min)': 'Average Granola transcript length in minutes.',
 };
 const hint = (c) => HINTS[c] || (c.startsWith('Moved to ') ? `Deals that entered the “${c.slice(9)}” stage in the selected dates (a new deal counts as entering its first stage).` : c.startsWith('Open now: ') ? `Deals currently sitting in the “${c.slice(10)}” stage, whatever the dates.` : '');
@@ -236,7 +232,7 @@ const KPI_TIPS = {
   'New Contacts': 'HubSpot contacts created in the selected dates.', 'Lead → Meeting': 'Share of those new contacts who booked a call.',
   'Close Rate': 'Closed Won deals ÷ meetings taken (the second figure is Closed Won ÷ new contacts).',
   'Post-Call Pending': 'Recorded calls where the post-call sequence hasn’t been sent yet.',
-  'Overdue Tasks': 'Tasks past due and not completed at the end of the last selected day (right now if that is today). The line below shows the average per day across the selection.',
+  'Overdue Tasks': 'Tasks that are overdue right now: not completed and past their due time in HubSpot. Not affected by the selected dates.',
   'Avg Call Duration': 'Average Granola transcript length (first to last spoken line).',
 };
 const PANEL_TIPS = {
@@ -393,7 +389,7 @@ function render() {
     const rows = { compliance: D.compliance, daily: D.daily, tracker: D.tracker, metrics: D.metrics, pipeline: D.pipeline }[S.tab];
     v.innerHTML = rows && rows.length ? table(S.tab, rows) : '<div class="empty"><b>No activity for this selection</b>Try another day, or choose a wider date range.</div>';
     v.querySelectorAll('th[data-c]').forEach((th) => (th.onclick = (e) => { if (e.target.closest('.i')) return; const s = S.sort[S.tab]; S.sort[S.tab] = { col: th.dataset.c, dir: s && s.col === th.dataset.c && s.dir === 1 ? -1 : 1 }; render(); }));
-    const txt = { tracker: `${rows ? rows.length : 0} meetings`, metrics: 'Contacts = HubSpot contacts created in the range · Tasks are those created in the range.', pipeline: 'A new deal counts as entering its first stage.', compliance: 'Chip colours follow the sheet’s targets: green at target, amber within 30%, red below.' }[S.tab];
+    const txt = { tracker: `${rows ? rows.length : 0} meetings`, metrics: 'Contacts = HubSpot contacts created in the range · Overdue Tasks is the current count and ignores the dates.', pipeline: 'A new deal counts as entering its first stage.', compliance: 'Chip colours follow the sheet’s targets: green at target, amber within 30%, red below.' }[S.tab];
     if (txt) { note.textContent = txt; note.hidden = false; }
   }
 }
@@ -408,7 +404,7 @@ function renderKpis() {
     ['Lead → Meeting', n('Lead-to-Meeting %'), `${n('Booked Call')} booked / ${n('Contacts')} contacts`],
     ['Close Rate', n('Close Rate (of meetings)'), `of meetings · ${n('Close Rate (of contacts)')} of contacts`],
     ['Post-Call Pending', n('Post-Call Pending'), `${n('Post-Call Sent')} sent`],
-    ['Overdue Tasks', n('Overdue at End of Range'), `avg ${n('Avg Overdue Tasks')} per day`],
+    ['Overdue Tasks', n('Overdue Tasks'), 'overdue right now'],
     ['Avg Call Duration', m['Avg Duration (min)'] === '—' ? '—' : m['Avg Duration (min)'] + ' min', `${n('Portal Mentioned')} portal mentions`],
   ];
   $('kpis').innerHTML = cards.map(([l, v, s]) => `<div class="kpi"><div class="l">${l}${ic(KPI_TIPS[l])}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></div>`).join('');
