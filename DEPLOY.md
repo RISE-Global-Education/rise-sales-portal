@@ -32,11 +32,11 @@ The first run pulls everything (~4-5 min); if it returns `"complete": false`, ca
 ## Schedules (vercel.json, UTC)
 | Job | Cron | India time |
 |---|---|---|
-| refresh data | `*/15 * * * *` | every 15 minutes (needs Vercel Pro) |
+| refresh data | `0 * * * *` | every hour, on the hour |
 | daily email | `30 4 * * *` | 10:00 daily |
 | weekly email | `0 5 * * 0` | 10:30 Sunday |
 
-The refresh runs every 15 minutes (Vercel Pro). On the free Hobby plan, change it back to `0 4 * * *` (one run per day).
+The refresh runs every hour (Vercel Pro allows more often, e.g. `*/15 * * * *`). On the free Hobby plan, change it back to `0 4 * * *` (one run per day).
 Also add the environment variable `REFRESH_STALE_MS=600000` so each 15-minute run actually refetches
 (by default a data part refreshed in the last 2 hours is skipped).
 
