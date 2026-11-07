@@ -7,7 +7,8 @@ Connect it to the project; Vercel adds `BLOB_READ_WRITE_TOKEN` automatically.
 ## 2. Environment variables (Project -> Settings -> Environment Variables)
 | Name | Value |
 |---|---|
-| `PORTAL_PASSWORD` | password people type to open the portal (required) |
+| `REQUIRE_LOGIN` | leave unset for an open portal (current setting); `true` turns the password page back on |
+| `PORTAL_PASSWORD` | the password used when `REQUIRE_LOGIN=true` |
 | `CRON_SECRET` | any long random string (required; Vercel sends it to the cron endpoints) |
 | `HUBSPOT_TOKEN` | HubSpot private app token (rotate the one used in development) |
 | `GRANOLA_API_KEY` | Granola API key (rotate the one in the Apps Script) |
