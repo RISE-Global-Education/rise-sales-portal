@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/cron/*.js": { "maxDuration": 300 },
+    "api/data.js": { "maxDuration": 30 }
+  },
+  "crons": [
+    { "path": "/api/cron/refresh", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/daily",   "schedule": "30 4 * * *" },
+    { "path": "/api/cron/weekly",  "schedule": "0 5 * * 0" }
+  ]
+}

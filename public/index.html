@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sales Portal</title>
+<style>
+  :root {
+    --bg:#f4f6f9; --surface:#ffffff; --surface2:#f8fafc; --ink:#111827; --ink2:#4b5563; --mute:#6b7280; --line:#e5e7eb; --line2:#eef0f3;
+    --accent:#2457d6; --accent-soft:#e8eefc; --accent-ink:#ffffff;
+    --good:#0f7a4a; --good-bg:#e3f5ec; --warn:#92580a; --warn-bg:#fdf1dc; --bad:#b42318; --bad-bg:#fde8e6; --na:#6b7280; --na-bg:#eef0f3;
+    --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08); --radius:14px; --pop:0 12px 32px rgba(0,0,0,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#0e1116; --surface:#161b22; --surface2:#1b212a; --ink:#e8ecf1; --ink2:#b4bcc8; --mute:#8b95a3; --line:#2a313c; --line2:#222833;
+      --accent:#7ba3ff; --accent-soft:#1e2b4d; --accent-ink:#0e1116;
+      --good:#5fd39b; --good-bg:#12372a; --warn:#f2c46b; --warn-bg:#3b2d12; --bad:#ff8f84; --bad-bg:#43191a; --na:#8b95a3; --na-bg:#232a34;
+      --shadow:0 1px 2px rgba(0,0,0,.4); --pop:0 12px 32px rgba(0,0,0,.6);
+    }
+  }
+  * { box-sizing:border-box }
+  html { -webkit-text-size-adjust:100% }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; font-variant-numeric:tabular-nums }
+  button, input { font:inherit; color:inherit } button { cursor:pointer }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px }
+
+  /* ---------- (i) info icon + tooltip ---------- */
+  .i { display:inline-grid; place-items:center; width:15px; height:15px; margin-left:6px; border-radius:50%; border:1px solid var(--mute); color:var(--mute); font:700 10px/1 Georgia, serif; font-style:italic; cursor:help; vertical-align:middle; flex:none; text-transform:none; letter-spacing:0 }
+  .i:hover, .i:focus-visible { background:var(--accent); border-color:var(--accent); color:var(--accent-ink) }
+  #tip { position:fixed; z-index:100; max-width:300px; padding:8px 11px; border-radius:9px; background:#111827; color:#f3f4f6; font:12.5px/1.4 -apple-system, "Segoe UI", sans-serif; font-weight:400; text-transform:none; letter-spacing:0; box-shadow:var(--pop); pointer-events:none; opacity:0; transform:translateY(2px); transition:opacity .12s, transform .12s; white-space:normal; text-align:left }
+  #tip.on { opacity:1; transform:none }
+  @media (prefers-color-scheme: dark) { #tip { background:#e8ecf1; color:#111827 } }
+
+  /* ---------- top bar ---------- */
+  .topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--line) }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; letter-spacing:-.01em; min-width:196px }
+  .logo { width:30px; height:30px; border-radius:9px; background:var(--accent); color:var(--accent-ink); display:grid; place-items:center; font-size:15px; font-weight:800 }
+  .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
+  .seg { display:inline-flex; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:2px }
+  .seg button { border:0; background:none; padding:5px 12px; border-radius:8px; color:var(--ink2); font-weight:500 }
+  .seg button[aria-pressed="true"] { background:var(--surface); color:var(--ink); box-shadow:var(--shadow) }
+  .datebox { display:inline-flex; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:10px }
+  .datebox > button { border:0; background:none; padding:7px 11px; color:var(--ink2); line-height:1 }
+  .datebox > button:hover:not(:disabled) { background:var(--bg) } .datebox > button:disabled { opacity:.35; cursor:default }
+  .datebox > button:first-child { border-radius:9px 0 0 9px } .datebox > button:last-child { border-radius:0 9px 9px 0 }
+  .datebox .cur { display:flex; align-items:center; gap:8px; font-weight:600; color:var(--ink); min-width:176px; justify-content:center; border-left:1px solid var(--line); border-right:1px solid var(--line) }
+  .datebox.range .cur { border:0; border-radius:9px }
+  .calwrap { position:relative }
+  .hide { display:none !important }
+
+  /* ---------- calendar widget ---------- */
+  .cal { position:absolute; top:calc(100% + 8px); left:0; z-index:40; display:flex; background:var(--surface); border:1px solid var(--line); border-radius:14px; box-shadow:var(--pop); overflow:hidden }
+  .presets { display:flex; flex-direction:column; gap:2px; padding:10px; border-right:1px solid var(--line); background:var(--surface2); min-width:140px }
+  .presets button { border:0; background:none; text-align:left; padding:7px 10px; border-radius:8px; color:var(--ink2); white-space:nowrap }
+  .presets button:hover { background:var(--accent-soft); color:var(--accent) }
+  .calbody { padding:12px 14px 10px; width:288px }
+  .calhead { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px }
+  .calhead b { font-size:14px } .calhead button { border:0; background:none; width:28px; height:28px; border-radius:8px; font-size:18px; line-height:1; color:var(--ink2) }
+  .calhead button:hover:not(:disabled) { background:var(--bg) } .calhead button:disabled { opacity:.3; cursor:default }
+  .dow, .days { display:grid; grid-template-columns:repeat(7,1fr); row-gap:2px }
+  .dow span { text-align:center; font-size:11px; font-weight:600; color:var(--mute); padding:4px 0 }
+  .d { height:34px; border:0; background:none; border-radius:0; position:relative; color:var(--ink); font-weight:500 }
+  .d.out { visibility:hidden } .d:disabled { color:var(--mute); opacity:.4; cursor:default }
+  .d:hover:not(:disabled):not(.on) { background:var(--accent-soft); border-radius:8px }
+  .d.today::after { content:""; position:absolute; bottom:5px; left:50%; width:4px; height:4px; margin-left:-2px; border-radius:50%; background:var(--accent) }
+  .d.inr { background:var(--accent-soft) } .d.on { background:var(--accent); color:var(--accent-ink); font-weight:700; border-radius:8px }
+  .d.on.today::after { background:var(--accent-ink) }
+  .d.s { border-radius:8px 0 0 8px } .d.e { border-radius:0 8px 8px 0 } .d.s.e { border-radius:8px }
+  .calfoot { margin-top:8px; padding-top:8px; border-top:1px solid var(--line2); color:var(--mute); font-size:12px }
+
+  /* ---------- layout ---------- */
+  .shell { display:grid; grid-template-columns:232px minmax(0,1fr); gap:20px; max-width:1680px; margin:0 auto; padding:20px 24px 40px }
+  .rail { position:sticky; top:84px; align-self:start; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:10px; box-shadow:var(--shadow); max-height:calc(100vh - 104px); overflow:auto }
+  .rail h4 { display:flex; align-items:center; margin:8px 10px 6px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute); font-weight:600 }
+  .person { display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:0; background:none; padding:8px 10px; border-radius:10px; color:var(--ink2) }
+  .person:hover { background:var(--bg) } .person[aria-current="true"] { background:var(--accent-soft); color:var(--ink); font-weight:600 }
+  .avatar { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:700; color:#fff; flex:none }
+  .avatar.all { background:var(--ink); color:var(--surface) } .person .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+
+  main { min-width:0 }
+  .infobar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; position:relative }
+  .scope { display:flex; align-items:center; gap:8px; min-width:0 }
+  .scope h2 { margin:0; font-size:20px; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .scope .sub { color:var(--mute); white-space:nowrap }
+  .help { height:26px; flex:none; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink2); font-weight:600; font-size:12.5px; padding:0 11px }
+  .help:hover { border-color:var(--accent); color:var(--accent) }
+  .pop { display:none; position:absolute; top:40px; left:0; z-index:15; width:min(480px,92vw); background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--pop) }
+  .pop.show { display:block } .pop h5 { margin:0 0 6px; font-size:13px } .pop ul { margin:0; padding-left:18px; color:var(--ink2) } .pop li { margin:4px 0 }
+  .stamp { display:flex; align-items:center; gap:8px; color:var(--mute); font-size:12.5px; background:var(--surface); border:1px solid var(--line); padding:5px 12px; border-radius:999px; white-space:nowrap }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--good) } .dot.old { background:#d99a1c }
+
+  /* ---------- KPI cards ---------- */
+  .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px }
+  .kpi { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow) }
+  .kpi .l { display:flex; align-items:center; color:var(--mute); font-size:12px; font-weight:600; letter-spacing:.02em; text-transform:uppercase }
+  .kpi .v { font-size:28px; font-weight:700; letter-spacing:-.02em; margin:4px 0 2px; line-height:1.1 } .kpi .s { color:var(--mute); font-size:12.5px }
+
+  /* ---------- tabs + table card ---------- */
+  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:14px; overflow-x:auto }
+  .tab { display:flex; align-items:center; border:0; background:none; padding:10px 14px; color:var(--mute); font-weight:600; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap }
+  .tab:hover { color:var(--ink) } .tab[aria-selected="true"] { color:var(--accent); border-bottom-color:var(--accent) }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden }
+  .scroller { overflow:auto; max-height:calc(100vh - 360px); min-height:140px }
+  table { border-collapse:separate; border-spacing:0; width:100% }
+  th, td { padding:10px 14px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--line2) }
+  th { position:sticky; top:0; z-index:2; background:var(--surface2); color:var(--ink2); font-size:12px; font-weight:600; border-bottom:1px solid var(--line); cursor:pointer; user-select:none; vertical-align:bottom }
+  th:hover { color:var(--ink) } th small { display:block; color:var(--mute); font-weight:500; font-size:11px }
+  th .ar { opacity:.35; margin-left:4px } th.sorted .ar { opacity:1; color:var(--accent) }
+  td.l, th.l { text-align:left }
+  td:first-child, th:first-child { position:sticky; left:0; background:var(--surface); z-index:1 } th:first-child { z-index:3; background:var(--surface2) }
+  tbody tr:hover td { background:var(--surface2) } tr.team td { font-weight:700; background:var(--surface2); border-top:1px solid var(--line) }
+  td.txt { white-space:normal; min-width:240px; max-width:420px; color:var(--ink2) }
+  td.txt .clamp { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
+  .pill { display:inline-block; min-width:42px; text-align:center; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600 }
+  .pill.good { color:var(--good); background:var(--good-bg) } .pill.warn { color:var(--warn); background:var(--warn-bg) } .pill.bad { color:var(--bad); background:var(--bad-bg) } .pill.na { color:var(--na); background:var(--na-bg) }
+  .dim { color:var(--mute) } a.open { color:var(--accent); text-decoration:none; font-weight:600 } a.open:hover { text-decoration:underline }
+  .foot { padding:10px 16px; color:var(--mute); font-size:12.5px; border-top:1px solid var(--line2) }
+  .empty { padding:48px 16px; text-align:center; color:var(--mute) } .empty b { display:block; color:var(--ink); font-size:15px; margin-bottom:4px }
+
+  .dash { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; padding:16px }
+  .panel { border:1px solid var(--line); border-radius:12px; padding:16px; background:var(--surface) }
+  .panel h3 { display:flex; align-items:center; margin:0 0 12px; font-size:13px; color:var(--ink2); text-transform:uppercase; letter-spacing:.04em }
+  .big { font-size:34px; font-weight:700; letter-spacing:-.02em }
+  .bar { display:flex; height:12px; border-radius:999px; overflow:hidden; background:var(--na-bg); margin:12px 0 8px } .bar i { display:block; height:100% } .bar .a { background:var(--good) } .bar .b { background:#d6a93a }
+  .legend { display:flex; justify-content:space-between; color:var(--ink2); font-size:13px } .legend span::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px } .legend .a::before { background:var(--good) } .legend .b::before { background:#d6a93a }
+
+  .sk { padding:14px } .sk i { display:block; height:34px; border-radius:8px; margin-bottom:10px; background:linear-gradient(90deg,var(--line2),var(--surface2),var(--line2)); background-size:200% 100%; animation:sh 1.2s infinite } @keyframes sh { to { background-position:-200% 0 } }
+  .login { max-width:340px; margin:60px auto; padding:24px; display:flex; flex-direction:column; gap:12px }
+  .login input { padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg) } .login button { padding:10px; border:0; border-radius:10px; background:var(--accent); color:var(--accent-ink); font-weight:600 }
+
+  @media (max-width:900px) {
+    .topbar { padding:10px 14px } .brand { min-width:0 }
+    .shell { grid-template-columns:1fr; padding:14px } .rail { position:static; display:flex; gap:6px; overflow-x:auto; padding:8px; max-height:none }
+    .rail h4 { display:none } .person { width:auto; white-space:nowrap; flex:none } .scroller { max-height:none }
+    .infobar { flex-wrap:wrap } .kpi .v { font-size:24px } .kpis { grid-template-columns:repeat(2,minmax(0,1fr)) }
+    .cal { flex-direction:column; left:auto; right:0 } .presets { flex-direction:row; flex-wrap:wrap; border-right:0; border-bottom:1px solid var(--line) } .calbody { width:min(288px,calc(100vw - 40px)) }
+  }
+</style>
+</head>
+<body>
+<div id="tip" role="tooltip"></div>
+
+<header class="topbar">
+  <div class="brand"><div class="logo">S</div>Sales portal</div>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Date mode">
+      <button id="mDay" aria-pressed="true">Day</button><button id="mRange" aria-pressed="false">Date range</button>
+    </div>
+    <span class="i" tabindex="0" data-tip="Choose one day, or a date range. Every number on the page follows this selection. Click the date to open the calendar." style="margin:0"></span>
+    <div class="calwrap" id="calwrap">
+      <div class="datebox" id="datebox">
+        <button id="prev" aria-label="Previous day">‹</button>
+        <button class="cur" id="calBtn" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true">📅</span><span id="calLabel"></span></button>
+        <button id="next" aria-label="Next day">›</button>
+      </div>
+      <div class="cal hide" id="cal" role="dialog" aria-label="Choose dates"></div>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="People"></nav>
+  <main>
+    <div class="infobar">
+      <div class="scope">
+        <h2 id="scopeName">Global view</h2><span class="i" tabindex="0" id="scopeTip" style="margin:0"></span>
+        <span class="sub" id="scopeSub"></span>
+        <button class="help" id="infoBtn">How it’s calculated</button>
+        <div class="pop" id="pop" role="dialog">
+          <h5>How the numbers are calculated</h5>
+          <ul>
+            <li>A meeting counts only if it is recorded on Granola <b>or</b> the post-call sequence was sent through HubSpot.</li>
+            <li>A HubSpot meeting with no Granola transcript is a no-show (a missed meeting is ignored if the same contact has a later one).</li>
+            <li>Closed Won = deals in the Sales Pipeline's Closed Won stage.</li>
+            <li>Overdue tasks are rebuilt from HubSpot task due and completion times: a task is overdue on a day if it was past due and not yet completed by the end of that day.</li>
+            <li>Coloured chips use the sheet's targets: Portal 80%+, 20-min calls 50%+, average call 20+ min, conversion 30%+.</li>
+            <li>All dates are in India time (IST).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="stamp"><span class="dot" id="dot"></span><span id="stampTxt">Loading…</span><span class="i" tabindex="0" data-tip="When the data was last pulled from HubSpot and Granola. It refreshes automatically; the dot turns amber if the data is more than a day old."></span></div>
+    </div>
+    <section class="kpis" id="kpis"></section>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="card"><div id="view"></div><div class="foot" id="note" hidden></div></div>
+  </main>
+</div>
+
+<script>
+const TABS = [
+  { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, no-show follow-up, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
+  { id: 'dashboard', label: 'Dashboard', tip: 'Granola meeting compliance: how many calls were recorded, how many ran 20+ minutes, and how many mentioned the student portal.' },
+  { id: 'daily', label: 'Daily Tracker', tip: 'One row per person per day with meeting activity, filled automatically (the sheet’s hand-filled daily tab).' },
+  { id: 'tracker', label: 'Meeting Tracker', tip: 'Every recorded Granola meeting in the selected dates, with duration, portal mention, a link to the note and a short summary.' },
+  { id: 'metrics', label: 'Metrics Summary', tip: 'Every metric in one table: closed deals, meetings, contacts and bookings, close rates, no-shows, follow-ups and tasks.' },
+  { id: 'pipeline', label: 'Deal Pipeline', tip: 'Deals moving between Sales Pipeline stages in the selected dates, and how many deals are open in each stage right now.' },
+];
+let TARGETS = {}; // loaded from the server (lib/config.js) with the data
+const HINTS = {
+  // shared
+  'Team Member': 'The sales rep (or the Team total).', 'Person': 'The sales rep.', 'Date': 'The day (India time).',
+  // compliance
+  'Avg Overdue Tasks': 'Average, over each day in the selected dates, of how many of the rep’s tasks were past due and not yet completed at the end of that day (rebuilt from HubSpot task due and completion times).',
+  'Total No-Shows': 'HubSpot meetings in the dates that have no Granola recording (cancelled, rescheduled, future and duplicate meetings excluded).',
+  'Granola Compliance': 'Meetings recorded on Granola ÷ meetings taken.',
+  'Post-Call Compliance': 'Recorded calls where the post-call sequence was sent within 7 days ÷ recorded calls.',
+  'No-Show Sequence Compliance': 'No-shows that received the no-show email ÷ no-shows. Blank if there were no no-shows.',
+  'Portal Compliance': 'Granola notes that mention the student portal ÷ all Granola notes. Target 80%+.',
+  '20 Min Duration Compliance': 'Granola notes with a transcript of 20 minutes or more ÷ notes with a duration. Target 50%+.',
+  'Average Call Duration': 'Average Granola transcript length in minutes (first to last spoken line). Target 20+.',
+  'Deals Closed': 'Deals that reached Closed Won in the Sales Pipeline with a close date in the selected dates.',
+  'Total Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent.',
+  'Conversion Rate': 'Deals closed ÷ meetings taken. Target 30%+.',
+  // daily
+  'No of Meets Taken': 'Meetings taken that day (Granola-recorded or post-call sent).',
+  'Overdue Tasks (Count)': 'How many of the person’s tasks were past due and not yet completed at the end of that day.',
+  'Granola Recorded': 'Yes = every meeting taken was recorded; No = at least one wasn’t; NA = no meetings.',
+  'Post-Call Sequence Sent': 'Yes = every recorded call got the post-call sequence; No = at least one is missing; NA = no recorded calls.',
+  'No-Shows (Count)': 'Meetings that day with no Granola recording.',
+  'No-Show Template Sent': 'Yes = every no-show got the no-show email; No = at least one didn’t; NA = no no-shows.',
+  // tracker
+  'Meeting': 'The meeting title from Granola.', 'Owner': 'The rep who owns the Granola note.', 'Attendees': 'People on the call (hover the text for the full list).',
+  'Scheduled Duration (min)': 'Length of the calendar event.', 'Actual Transcript Duration (min)': 'First to last spoken line in the transcript.',
+  '20+ Minutes?': 'Yes if the transcript ran 20 minutes or more.', 'Portal Mentioned?': 'Yes if “portal” appears in the summary or transcript.',
+  'Granola Note': 'Opens the full note in Granola.', 'Summary': 'First 300 characters of Granola’s summary (hover for the text).',
+  // metrics
+  'Closed Won': 'Deals that reached Closed Won in the selected dates.', 'Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent.',
+  'Contacts': 'HubSpot contacts created in the selected dates and assigned to the rep.', 'Booked Call': 'Those contacts who booked a call through HubSpot’s meetings tool.',
+  'Lead-to-Meeting %': 'Contacts who booked a call ÷ contacts.', 'Close Rate (of meetings)': 'Closed Won ÷ meetings taken.', 'Close Rate (of contacts)': 'Closed Won ÷ contacts.',
+  'No-Shows': 'Meetings with no Granola recording.', 'No-Show Seq Sent': 'No-shows that received the no-show email.',
+  'Post-Call Sent': 'Recorded calls where the post-call sequence was sent.', 'Post-Call Pending': 'Recorded calls where it hasn’t been sent yet.',
+  'Tasks Created': 'Tasks created in the selected dates.', 'Tasks Completed': 'Of those, tasks marked completed.',
+  'Tasks Pending': 'Of those, not completed and not yet due.', 'Tasks Overdue': 'Of those, not completed and already past due.',
+  'Overdue at End of Range': 'All of the person’s tasks (whenever created) that were past due and not completed at the end of the last selected day (or right now, if that day is today).',
+  'Portal Mentioned': 'Granola notes that mention the student portal.', 'Avg Duration (min)': 'Average Granola transcript length in minutes.',
+};
+const hint = (c) => HINTS[c] || (c.startsWith('Moved to ') ? `Deals that entered the “${c.slice(9)}” stage in the selected dates (a new deal counts as entering its first stage).` : c.startsWith('Open now: ') ? `Deals currently sitting in the “${c.slice(10)}” stage, whatever the dates.` : '');
+const KPI_TIPS = {
+  'Closed Won': 'Deals that reached the Sales Pipeline’s Closed Won stage with a close date in the selected dates.',
+  'Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent through HubSpot.',
+  'New Contacts': 'HubSpot contacts created in the selected dates.', 'Lead → Meeting': 'Share of those new contacts who booked a call.',
+  'Close Rate': 'Closed Won deals ÷ meetings taken (the second figure is Closed Won ÷ new contacts).',
+  'Post-Call Pending': 'Recorded calls where the post-call sequence hasn’t been sent yet.',
+  'Overdue Tasks': 'Tasks past due and not completed at the end of the last selected day (right now if that is today). The line below shows the average per day across the selection.',
+  'Avg Call Duration': 'Average Granola transcript length (first to last spoken line).',
+};
+const PANEL_TIPS = {
+  'Total meetings': 'Number of Granola notes (recorded calls) in the selected dates.',
+  '20+ minute compliance': 'Share of recorded calls whose transcript ran 20 minutes or more. Green = 20+ min, gold = shorter.',
+  'Student portal mentioned': 'Share of recorded calls where “portal” appears in the summary or transcript.',
+};
+const COLORS = ['#2457d6', '#0f7a4a', '#b4531d', '#7a3fb5', '#0d7f8f', '#b0306a', '#5b6b1f', '#a8431f', '#3a56a8'];
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const ic = (t) => (t ? `<span class="i" tabindex="0" data-tip="${esc(t)}">i</span>` : '');
+const ymd = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+const noon = (s) => new Date(s + 'T12:00:00');
+const shift = (s, n) => ymd(new Date(noon(s).getTime() + n * 864e5));
+const today = ymd(new Date());
+const fmtDate = (s) => (/^\d{4}-\d\d-\d\d$/.test(s) ? noon(s).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }) : s);
+const fmtShort = (s) => noon(s).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+const fmtLong = (s) => noon(s).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+const initials = (n) => n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+const color = (n) => COLORS[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+let S = { tab: TABS.some((t) => t.id === store.get('sp.tab')) ? store.get('sp.tab') : 'compliance', rep: '', mode: 'day', day: shift(today, -1), from: today.slice(0, 8) + '01', to: today, view: shift(today, -1).slice(0, 7), pending: null, hover: null, D: null, sort: {} };
+const sel = () => (S.mode === 'day' ? [S.day, S.day] : [S.from, S.to]);
+
+// ---------- tooltip ----------
+const tip = $('tip');
+function showTip(el) {
+  tip.textContent = el.dataset.tip; tip.classList.add('on');
+  const r = el.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), innerWidth - w - 8), y = r.bottom + 8;
+  if (y + h > innerHeight - 8) y = r.top - h - 8;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+const hideTip = () => tip.classList.remove('on');
+document.addEventListener('mouseover', (e) => { const el = e.target.closest('[data-tip]'); if (el) showTip(el); });
+document.addEventListener('mouseout', (e) => { if (e.target.closest('[data-tip]')) hideTip(); });
+document.addEventListener('focusin', (e) => { const el = e.target.closest('[data-tip]'); if (el) showTip(el); });
+document.addEventListener('focusout', hideTip);
+document.addEventListener('scroll', hideTip, true);
+document.addEventListener('click', (e) => { const el = e.target.closest('.i[data-tip]'); if (el) { e.stopPropagation(); showTip(el); } }); // tap on touch screens
+
+// ---------- calendar widget ----------
+const PRESETS = [
+  ['Yesterday', () => ['day', shift(today, -1)]],
+  ['Last 7 days', () => ['range', shift(today, -7), shift(today, -1)]],
+  ['This week', () => ['range', shift(today, -((noon(today).getDay() + 6) % 7)), today]],
+  ['This month', () => ['range', today.slice(0, 8) + '01', today]],
+  ['Last month', () => { const d = noon(today.slice(0, 8) + '01'); d.setDate(0); return ['range', ymd(d).slice(0, 8) + '01', ymd(d)]; }],
+  ['All time', () => ['range', '2000-01-01', today]],
+];
+function applySel(mode, a, b) {
+  S.mode = mode; if (mode === 'day') S.day = a; else { S.from = a; S.to = b; }
+  S.pending = null; S.hover = null; S.view = (mode === 'day' ? a : b).slice(0, 7);
+  closeCal(); load();
+}
+function label() { return S.mode === 'day' ? fmtLong(S.day) : S.from.startsWith('2000') ? 'All time' : `${fmtShort(S.from)} – ${fmtShort(S.to)}`; }
+function syncControls() {
+  $('calLabel').textContent = label();
+  $('mDay').setAttribute('aria-pressed', S.mode === 'day'); $('mRange').setAttribute('aria-pressed', S.mode === 'range');
+  $('prev').classList.toggle('hide', S.mode !== 'day'); $('next').classList.toggle('hide', S.mode !== 'day'); $('datebox').classList.toggle('range', S.mode !== 'day');
+  $('next').disabled = S.day >= today;
+}
+function renderCal() {
+  const [y, m] = S.view.split('-').map(Number), first = new Date(y, m - 1, 1), days = new Date(y, m, 0).getDate(), lead = (first.getDay() + 6) % 7;
+  const anchor = S.pending, end = S.pending ? S.hover || S.pending : null;
+  let lo = S.mode === 'day' ? S.day : S.from, hi = S.mode === 'day' ? S.day : S.to;
+  if (anchor) { lo = anchor < end ? anchor : end; hi = anchor < end ? end : anchor; }
+  let cells = '';
+  for (let i = 0; i < lead; i++) cells += '<button class="d out" disabled></button>';
+  for (let d = 1; d <= days; d++) {
+    const k = `${S.view}-${String(d).padStart(2, '0')}`, dis = k > today;
+    const on = k === lo || k === hi, inr = k > lo && k < hi;
+    cells += `<button class="d ${on ? 'on' : ''} ${inr ? 'inr' : ''} ${k === lo ? 's' : ''} ${k === hi ? 'e' : ''} ${k === today ? 'today' : ''}" data-d="${k}" ${dis ? 'disabled' : ''}>${d}</button>`;
+  }
+  const title = first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  $('cal').innerHTML = `<div class="presets">${PRESETS.map(([n], i) => `<button data-pi="${i}">${n}</button>`).join('')}</div>
+    <div class="calbody"><div class="calhead"><button id="cprev" aria-label="Previous month">‹</button><b>${title}</b><button id="cnext" aria-label="Next month" ${S.view >= today.slice(0, 7) ? 'disabled' : ''}>›</button></div>
+    <div class="dow"><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span></div><div class="days">${cells}</div>
+    <div class="calfoot">${S.mode === 'day' ? 'Click a day to view it.' : S.pending ? 'Now click the last day of the range.' : 'Click the first day, then the last day.'}</div></div>`;
+  $('cprev').onclick = (e) => { e.stopPropagation(); S.view = shiftMonth(S.view, -1); renderCal(); };
+  $('cnext').onclick = (e) => { e.stopPropagation(); S.view = shiftMonth(S.view, 1); renderCal(); };
+}
+const shiftMonth = (v, n) => { const [y, m] = v.split('-').map(Number), d = new Date(y, m - 1 + n, 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
+function openCal() { S.view = (S.mode === 'day' ? S.day : S.to).slice(0, 7); S.pending = null; renderCal(); $('cal').classList.remove('hide'); $('calBtn').setAttribute('aria-expanded', 'true'); }
+function closeCal() { $('cal').classList.add('hide'); $('calBtn').setAttribute('aria-expanded', 'false'); S.pending = null; S.hover = null; }
+$('calBtn').onclick = (e) => { e.stopPropagation(); $('cal').classList.contains('hide') ? openCal() : closeCal(); };
+$('cal').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const d = e.target.closest('.d[data-d]'), p = e.target.closest('[data-pi]');
+  if (p) { const [mode, a, b] = PRESETS[+p.dataset.pi][1](); return applySel(mode, a, b); }
+  if (!d) return;
+  const k = d.dataset.d;
+  if (S.mode === 'day') return applySel('day', k);
+  if (!S.pending) { S.pending = k; S.hover = k; renderCal(); }
+  else applySel('range', S.pending < k ? S.pending : k, S.pending < k ? k : S.pending);
+});
+$('cal').addEventListener('mouseover', (e) => { const d = e.target.closest('.d[data-d]'); if (d && S.pending && S.hover !== d.dataset.d) { S.hover = d.dataset.d; renderCal(); } });
+document.addEventListener('click', (e) => { if (!$('calwrap').contains(e.target)) closeCal(); if (!$('pop').contains(e.target) && e.target !== $('infoBtn')) $('pop').classList.remove('show'); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeCal(); $('pop').classList.remove('show'); } });
+$('mDay').onclick = () => { if (S.mode !== 'day') { S.mode = 'day'; syncControls(); load(); } };
+$('mRange').onclick = () => { if (S.mode !== 'range') { S.mode = 'range'; syncControls(); load(); } };
+$('prev').onclick = () => { S.day = shift(S.day, -1); load(); };
+$('next').onclick = () => { if (S.day < today) { S.day = shift(S.day, 1); load(); } };
+$('infoBtn').onclick = (e) => { e.stopPropagation(); $('pop').classList.toggle('show'); };
+
+// ---------- data ----------
+async function load(silent = false) {
+  syncControls();
+  if (!silent) $('view').innerHTML = '<div class="sk"><i></i><i></i><i></i><i></i><i></i></div>';
+  const [f, t] = sel();
+  let resp;
+  try { resp = await fetch(`/api/data?from=${f}&to=${t}&rep=${encodeURIComponent(S.rep)}`); }
+  catch { $('view').innerHTML = '<div class="empty"><b>Can’t reach the server</b>Check that it is running, then reload.</div>'; return; }
+  if (resp.status === 401) return showLogin();
+  const r = await resp.json();
+  if (r.error) { $('view').innerHTML = `<div class="empty"><b>Something went wrong</b>${esc(r.error)}</div>`; return; }
+  if (r.loading) { $('view').innerHTML = '<div class="empty"><b>Loading data from HubSpot and Granola</b>The first load takes a few minutes. This page will update by itself.</div>'; setTimeout(load, 10000); return; }
+  S.D = r; TARGETS = r.targets || TARGETS; render();
+}
+function showLogin() {
+  document.querySelector('.shell').innerHTML = '<form class="card login" id="lf"><b style="font-size:18px">Sign in</b><span class="dim">Enter the portal password to continue.</span><input type="password" id="pw" placeholder="Password" autocomplete="current-password" autofocus><button>Sign in</button><span id="lerr" class="dim"></span></form>';
+  $('lf').onsubmit = async (e) => {
+    e.preventDefault();
+    const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: $('pw').value }) });
+    if (r.ok) location.reload(); else $('lerr').textContent = 'Wrong password, try again.';
+  };
+}
+
+// ---------- rendering ----------
+function render() {
+  const D = S.D, [f, t] = sel();
+  $('stampTxt').textContent = 'Updated ' + new Date(D.updatedAt).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+  $('dot').classList.toggle('old', (Date.now() - Date.parse(D.updatedAt)) / 36e5 > 30);
+
+  $('rail').innerHTML = `<h4>View${ic('Choose whose numbers to show. “Global view” combines every rep.')}</h4>` + [['', 'Global view'], ...D.reps.map((r) => [r, r])].map(([v, n], i) =>
+    (i === 1 ? `<h4>Team${ic('Reps with a meeting or Granola note in the last 60 days.')}</h4>` : '') + `<button class="person" data-r="${esc(v)}" ${v === S.rep ? 'aria-current="true"' : ''}><span class="avatar ${v ? '' : 'all'}" ${v ? `style="background:${color(n)}"` : ''}>${v ? initials(n) : '★'}</span><span class="nm">${esc(n)}</span></button>`).join('');
+  $('rail').querySelectorAll('.person').forEach((b) => (b.onclick = () => { S.rep = b.dataset.r; load(); }));
+
+  $('scopeName').textContent = S.rep || 'Global view';
+  $('scopeTip').dataset.tip = S.rep ? `Showing only ${S.rep}’s numbers. Choose “Global view” in the sidebar for everyone.` : 'Showing all reps combined. Choose a person in the sidebar to see just their numbers.';
+  $('scopeTip').textContent = 'i';
+  $('scopeSub').textContent = f === t ? fmtLong(f) : f.startsWith('2000') ? 'All time' : `${fmtDate(f)} – ${fmtDate(t)}`;
+  renderKpis();
+
+  $('tabs').innerHTML = TABS.map((x) => `<button class="tab" role="tab" data-t="${x.id}" aria-selected="${x.id === S.tab}">${x.label}${ic(x.tip).replace(' tabindex="0"', '')}</button>`).join('');
+  $('tabs').querySelectorAll('.tab').forEach((b) => (b.onclick = () => { S.tab = b.dataset.t; store.set('sp.tab', S.tab); render(); }));
+
+  const note = $('note'); note.hidden = true;
+  const v = $('view');
+  if (S.tab === 'dashboard') v.innerHTML = dashboard();
+  else {
+    const rows = { compliance: D.compliance, daily: D.daily, tracker: D.tracker, metrics: D.metrics, pipeline: D.pipeline }[S.tab];
+    v.innerHTML = rows && rows.length ? table(S.tab, rows) : '<div class="empty"><b>No activity for this selection</b>Try another day, or choose a wider date range.</div>';
+    v.querySelectorAll('th[data-c]').forEach((th) => (th.onclick = (e) => { if (e.target.closest('.i')) return; const s = S.sort[S.tab]; S.sort[S.tab] = { col: th.dataset.c, dir: s && s.col === th.dataset.c && s.dir === 1 ? -1 : 1 }; render(); }));
+    const txt = { tracker: `${rows ? rows.length : 0} meetings`, metrics: 'Contacts = HubSpot contacts created in the range · Tasks are those created in the range.', pipeline: 'A new deal counts as entering its first stage.', compliance: 'Chip colours follow the sheet’s targets: green at target, amber within 30%, red below.' }[S.tab];
+    if (txt) { note.textContent = txt; note.hidden = false; }
+  }
+}
+
+function renderKpis() {
+  const m = S.D.metrics.find((x) => x['Team Member'] === (S.rep || 'Team')) || S.D.metrics[S.D.metrics.length - 1];
+  const n = (k) => (typeof m[k] === 'number' ? m[k].toLocaleString() : m[k]);
+  const cards = [
+    ['Closed Won', n('Closed Won'), `${n('Meetings Taken')} meetings taken`],
+    ['Meetings Taken', n('Meetings Taken'), `${n('No-Shows')} no-shows`],
+    ['New Contacts', n('Contacts'), `${n('Booked Call')} booked a call`],
+    ['Lead → Meeting', n('Lead-to-Meeting %'), `${n('Booked Call')} booked / ${n('Contacts')} contacts`],
+    ['Close Rate', n('Close Rate (of meetings)'), `of meetings · ${n('Close Rate (of contacts)')} of contacts`],
+    ['Post-Call Pending', n('Post-Call Pending'), `${n('Post-Call Sent')} sent`],
+    ['Overdue Tasks', n('Overdue at End of Range'), `avg ${n('Avg Overdue Tasks')} per day`],
+    ['Avg Call Duration', m['Avg Duration (min)'] === '—' ? '—' : m['Avg Duration (min)'] + ' min', `${n('Portal Mentioned')} portal mentions`],
+  ];
+  $('kpis').innerHTML = cards.map(([l, v, s]) => `<div class="kpi"><div class="l">${l}${ic(KPI_TIPS[l])}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></div>`).join('');
+}
+
+function chipClass(col, v) { const t = TARGETS[col]; if (t == null) return null; const x = parseFloat(v); if (isNaN(x)) return 'na'; return x >= t ? 'good' : x >= t * 0.7 ? 'warn' : 'bad'; }
+function cell(col, v) {
+  if (col === 'Date') return `<td class="l">${esc(fmtDate(v))}</td>`;
+  if (col === 'Granola Note') return `<td class="l">${v ? `<a class="open" href="${esc(v)}" target="_blank" rel="noopener">Open ↗</a>` : '<span class="dim">—</span>'}</td>`;
+  if (v === 'Yes' || v === 'No' || v === 'NA') return `<td><span class="pill ${v === 'Yes' ? 'good' : v === 'No' ? 'bad' : 'na'}">${v}</span></td>`;
+  if (col === 'Attendees' || col === 'Summary' || col === 'Meeting') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
+  if (['Team Member', 'Person', 'Owner', 'Metric'].includes(col)) return `<td class="l">${esc(v)}</td>`;
+  const cc = chipClass(col, v);
+  if (cc) return `<td><span class="pill ${cc}">${esc(v)}</span></td>`;
+  if (v === '—' || v === '' || v == null) return '<td class="dim">—</td>';
+  return `<td>${typeof v === 'number' ? v.toLocaleString() : esc(v)}</td>`;
+}
+const num = (v) => { if (typeof v === 'number') return v; const x = parseFloat(String(v).replace('%', '')); return isNaN(x) || !/^[\d.\-]+%?$/.test(String(v).trim()) ? null : x; };
+
+function table(id, rows) {
+  const cols = Object.keys(rows[0]), s = S.sort[id];
+  let body = rows.slice(), team = null;
+  const ti = body.findIndex((r) => r['Team Member'] === 'Team'); if (ti >= 0) team = body.splice(ti, 1)[0];
+  if (s) body.sort((a, b) => { const x = num(a[s.col]), y = num(b[s.col]); return (x != null && y != null ? x - y : String(a[s.col]).localeCompare(String(b[s.col]))) * s.dir; });
+  if (team) body.push(team);
+  const left = ['Attendees', 'Summary', 'Meeting', 'Granola Note', 'Owner', 'Person', 'Date'];
+  const head = cols.map((c, i) => `<th data-c="${esc(c)}" class="${i === 0 || left.includes(c) ? 'l' : ''} ${s && s.col === c ? 'sorted' : ''}">${esc(c)}${ic(hint(c))}<span class="ar">${s && s.col === c ? (s.dir === 1 ? '↑' : '↓') : '↕'}</span>${TARGETS[c] != null ? `<small>target ${TARGETS[c]}${c === 'Average Call Duration' ? ' min' : '%'}+</small>` : ''}</th>`).join('');
+  return `<div class="scroller"><table><thead><tr>${head}</tr></thead><tbody>${body.map((r) => `<tr class="${r['Team Member'] === 'Team' ? 'team' : ''}">${cols.map((c) => cell(c, r[c])).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+function dashboard() {
+  const d = Object.fromEntries(S.D.dashboard);
+  const tot = d['Total Meetings'] || 0, over = d['Meetings 20+ Minutes'] || 0, under = d['Meetings Under 20 Minutes'] || 0, pm = d['Portal Mentioned'] || 0, pn = d['Portal Not Mentioned'] || 0;
+  if (!tot) return '<div class="empty"><b>No recorded meetings for this selection</b>Try another day, or choose a wider date range.</div>';
+  const bar = (a, b) => `<div class="bar"><i class="a" style="width:${(a / ((a + b) || 1)) * 100}%"></i><i class="b" style="width:${(b / ((a + b) || 1)) * 100}%"></i></div>`;
+  const h = (t) => `<h3>${t}${ic(PANEL_TIPS[t])}</h3>`;
+  return `<div class="dash">
+    <div class="panel">${h('Total meetings')}<div class="big">${tot.toLocaleString()}</div><div class="dim">Recorded on Granola</div></div>
+    <div class="panel">${h('20+ minute compliance')}<div class="big">${esc(d['20+ Minute Compliance'])}</div>${bar(over, under)}<div class="legend"><span class="a">20+ min · ${over.toLocaleString()}</span><span class="b">Under 20 · ${under.toLocaleString()}</span></div></div>
+    <div class="panel">${h('Student portal mentioned')}<div class="big">${pm + pn ? Math.round((pm / (pm + pn)) * 1000) / 10 + '%' : '—'}</div>${bar(pm, pn)}<div class="legend"><span class="a">Mentioned · ${pm.toLocaleString()}</span><span class="b">Not mentioned · ${pn.toLocaleString()}</span></div></div>
+  </div>`;
+}
+
+// header (i) icons
+document.querySelectorAll('.controls .i').forEach((e) => (e.textContent = 'i'));
+document.querySelector('.stamp .i').textContent = 'i';
+syncControls();
+load();
+setInterval(() => { if (!document.hidden && S.D) load(true); }, 5 * 60 * 1000); // pick up newly refreshed data without a manual reload
+</script>
+</body>
+</html>
