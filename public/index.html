@@ -6,16 +6,17 @@
 <title>Sales Portal</title>
 <style>
   :root {
-    --bg:#f4f6f9; --surface:#ffffff; --surface2:#f8fafc; --ink:#111827; --ink2:#4b5563; --mute:#6b7280; --line:#e5e7eb; --line2:#eef0f3;
-    --accent:#2457d6; --accent-soft:#e8eefc; --accent-ink:#ffffff;
-    --good:#0f7a4a; --good-bg:#e3f5ec; --warn:#92580a; --warn-bg:#fdf1dc; --bad:#b42318; --bad-bg:#fde8e6; --na:#6b7280; --na-bg:#eef0f3;
-    --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08); --radius:14px; --pop:0 12px 32px rgba(0,0,0,.18);
+    /* RISE brand (from riseglobaleducation.com): page #FDFFFC, ink navy #001122, deep navy #041E3A, brand green #1C7C54 */
+    --bg:#FDFFFC; --surface:#ffffff; --surface2:#F4F8F5; --ink:#001122; --ink2:#34495E; --mute:#667583; --line:#DDE5E0; --line2:#EBF0EC;
+    --accent:#1C7C54; --accent-soft:#E2F1E9; --accent-ink:#ffffff; --navy:#041E3A;
+    --good:#1C7C54; --good-bg:#E2F1E9; --warn:#8A5A0B; --warn-bg:#FCF0D9; --bad:#B42318; --bad-bg:#FDE8E6; --na:#667583; --na-bg:#EBF0EC;
+    --shadow:0 1px 2px rgba(0,17,34,.06), 0 1px 3px rgba(0,17,34,.08); --radius:14px; --pop:0 12px 32px rgba(0,17,34,.18);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg:#0e1116; --surface:#161b22; --surface2:#1b212a; --ink:#e8ecf1; --ink2:#b4bcc8; --mute:#8b95a3; --line:#2a313c; --line2:#222833;
-      --accent:#7ba3ff; --accent-soft:#1e2b4d; --accent-ink:#0e1116;
-      --good:#5fd39b; --good-bg:#12372a; --warn:#f2c46b; --warn-bg:#3b2d12; --bad:#ff8f84; --bad-bg:#43191a; --na:#8b95a3; --na-bg:#232a34;
+      --bg:#001122; --surface:#041E3A; --surface2:#072A4C; --ink:#F2F7F4; --ink2:#B9C7D3; --mute:#8A9CAD; --line:#12385E; --line2:#0C2B49;
+      --accent:#3DAA7D; --accent-soft:#0E3B3A; --accent-ink:#001122; --navy:#041E3A;
+      --good:#5FD3A0; --good-bg:#0F3D33; --warn:#F2C46B; --warn-bg:#3B2D12; --bad:#FF8F84; --bad-bg:#43191A; --na:#8A9CAD; --na-bg:#0C2B49;
       --shadow:0 1px 2px rgba(0,0,0,.4); --pop:0 12px 32px rgba(0,0,0,.6);
     }
   }
@@ -28,9 +29,9 @@
   /* ---------- (i) info icon + tooltip ---------- */
   .i { display:inline-grid; place-items:center; width:15px; height:15px; margin-left:6px; border-radius:50%; border:1px solid var(--mute); color:var(--mute); font:700 10px/1 Georgia, serif; font-style:italic; cursor:help; vertical-align:middle; flex:none; text-transform:none; letter-spacing:0 }
   .i:hover, .i:focus-visible { background:var(--accent); border-color:var(--accent); color:var(--accent-ink) }
-  #tip { position:fixed; z-index:100; max-width:300px; padding:8px 11px; border-radius:9px; background:#111827; color:#f3f4f6; font:12.5px/1.4 -apple-system, "Segoe UI", sans-serif; font-weight:400; text-transform:none; letter-spacing:0; box-shadow:var(--pop); pointer-events:none; opacity:0; transform:translateY(2px); transition:opacity .12s, transform .12s; white-space:normal; text-align:left }
+  #tip { position:fixed; z-index:100; max-width:300px; padding:8px 11px; border-radius:9px; background:#001122; color:#F2F7F4; font:12.5px/1.4 -apple-system, "Segoe UI", sans-serif; font-weight:400; text-transform:none; letter-spacing:0; box-shadow:var(--pop); pointer-events:none; opacity:0; transform:translateY(2px); transition:opacity .12s, transform .12s; white-space:normal; text-align:left }
   #tip.on { opacity:1; transform:none }
-  @media (prefers-color-scheme: dark) { #tip { background:#e8ecf1; color:#111827 } }
+  @media (prefers-color-scheme: dark) { #tip { background:#F2F7F4; color:#001122 } }
 
   /* ---------- top bar ---------- */
   .topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--line) }
@@ -240,7 +241,7 @@ const PANEL_TIPS = {
   '20+ minute compliance': 'Share of recorded calls whose transcript ran 20 minutes or more. Green = 20+ min, gold = shorter.',
   'Student portal mentioned': 'Share of recorded calls where “portal” appears in the summary or transcript.',
 };
-const COLORS = ['#2457d6', '#0f7a4a', '#b4531d', '#7a3fb5', '#0d7f8f', '#b0306a', '#5b6b1f', '#a8431f', '#3a56a8'];
+const COLORS = ['#1C7C54', '#041E3A', '#0A7FBF', '#5B7A2B', '#2E5E7E', '#7A4A24', '#0F5C5C', '#3A4E8C', '#8A3B5E'];
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
