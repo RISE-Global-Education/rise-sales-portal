@@ -5,18 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>Sales Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     color-scheme: light;
-    /* RISE look: white page, brand green (#1C7C54) accents, dark green-black text. No blues. */
-    --bg:#FDFFFC; --surface:#ffffff; --surface2:#F4F8F5; --ink:#10201A; --ink2:#3D4F46; --mute:#6B7A72; --line:#DDE5E0; --line2:#EBF0EC;
-    --accent:#1C7C54; --accent-soft:#E2F1E9; --accent-ink:#ffffff;
-    --good:#1C7C54; --good-bg:#E2F1E9; --warn:#8A5A0B; --warn-bg:#FCF0D9; --bad:#B42318; --bad-bg:#FDE8E6; --na:#6B7A72; --na-bg:#EBF0EC;
-    --shadow:0 1px 2px rgba(16,32,26,.06), 0 1px 3px rgba(16,32,26,.08); --radius:14px; --pop:0 12px 32px rgba(16,32,26,.18);
+    /* RISE look: white page, brand sage green (#3D7A5A) on cream (#FAF7F0), matching portal.riseglobaleducation.com accents, dark green-black text. No blues. */
+    --bg:#FAF7F0; --surface:#ffffff; --surface2:#F5F2EA; --ink:#10201A; --ink2:#3D4F46; --mute:#6B7A72; --line:#E4DFD3; --line2:#EFEBE1;
+    --accent:#3D7A5A; --accent-soft:#E3EEE7; --accent-ink:#ffffff;
+    --good:#3D7A5A; --good-bg:#E3EEE7; --warn:#8A5A0B; --warn-bg:#FCF0D9; --bad:#B42318; --bad-bg:#FDE8E6; --na:#6B7A72; --na-bg:#EBF0EC;
+    --shadow:0 1px 2px rgba(16,32,26,.06), 0 1px 3px rgba(16,32,26,.08); --radius:14px; --grad:linear-gradient(135deg,#2F6B4A 0%,#3D7A5A 50%,#4F9D72 100%); --pop:0 12px 32px rgba(16,32,26,.18);
   }
   * { box-sizing:border-box }
   html { -webkit-text-size-adjust:100% }
-  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; font-variant-numeric:tabular-nums }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-variant-numeric:tabular-nums }
   button, input { font:inherit; color:inherit } button { cursor:pointer }
   :focus-visible { outline:2px solid var(--accent); outline-offset:2px }
 
@@ -27,8 +28,8 @@
   #tip.on { opacity:1; transform:none }
 
   /* ---------- top bar ---------- */
-  .topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:12px 24px; background:var(--accent); color:#fff }
-  .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; letter-spacing:-.01em; min-width:196px }
+  .topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:12px 24px; background:var(--grad); color:#fff }
+  .brand { font-family:Outfit, Inter, sans-serif; display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; letter-spacing:-.01em; min-width:196px }
   .logo { width:30px; height:30px; border-radius:9px; background:#fff; color:var(--accent); display:grid; place-items:center; font-size:15px; font-weight:800 }
   .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
   .seg { display:inline-flex; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); border-radius:10px; padding:2px }
@@ -237,7 +238,7 @@ const PANEL_TIPS = {
   '20+ minute compliance': 'Share of recorded calls whose transcript ran 20 minutes or more. Green = 20+ min, gold = shorter.',
   'Student portal mentioned': 'Share of recorded calls where “portal” appears in the summary or transcript.',
 };
-const COLORS = ['#1C7C54', '#2E7D5B', '#5B7A2B', '#3F6B52', '#7A4A24', '#8A3B5E', '#4F6B2F', '#6B5B2A', '#2A5C45'];
+const COLORS = ['#3D7A5A', '#2E7D5B', '#5B7A2B', '#3F6B52', '#7A4A24', '#8A3B5E', '#4F6B2F', '#6B5B2A', '#2A5C45'];
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
