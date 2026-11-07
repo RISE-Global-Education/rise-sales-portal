@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>Sales Portal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Red+Hat+Display:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     color-scheme: light;
-    /* RISE look: white page, brand sage green (#3D7A5A) on cream (#FAF7F0), matching portal.riseglobaleducation.com accents, dark green-black text. No blues. */
-    --bg:#FAF7F0; --surface:#ffffff; --surface2:#F5F2EA; --ink:#10201A; --ink2:#3D4F46; --mute:#6B7A72; --line:#E4DFD3; --line2:#EFEBE1;
-    --accent:#3D7A5A; --accent-soft:#E3EEE7; --accent-ink:#ffffff;
-    --good:#3D7A5A; --good-bg:#E3EEE7; --warn:#8A5A0B; --warn-bg:#FCF0D9; --bad:#B42318; --bad-bg:#FDE8E6; --na:#6B7A72; --na-bg:#EBF0EC;
-    --shadow:0 1px 2px rgba(16,32,26,.06), 0 1px 3px rgba(16,32,26,.08); --radius:14px; --grad:linear-gradient(135deg,#2F6B4A 0%,#3D7A5A 50%,#4F9D72 100%); --pop:0 12px 32px rgba(16,32,26,.18);
+    /* RISE look: white page, RISE LMS design tokens: primary #1C7C54, cream #FBF8EF, Red Hat Display + Inter, radii 8/12/16 accents, dark green-black text. No blues. */
+    --bg:#FBF8EF; --surface:#ffffff; --surface2:#F0EDE4; --ink:#1D1D1F; --ink2:#424245; --mute:#6B6B6B; --line:#E5E2D9; --line2:#F0EDE4;
+    --accent:#1C7C54; --accent-dark:#155F40; --accent-light:#28A36D; --accent-soft:rgba(28,124,84,.10); --accent-ink:#ffffff;
+    --good:#1C7C54; --good-bg:#D1FAE5; --warn:#92400E; --warn-bg:#FEF3C7; --bad:#DC2626; --bad-bg:#FEE2E2; --na:#6B6B6B; --na-bg:#F0EDE4;
+    --shadow:0 1px 3px rgba(0,0,0,.08); --radius:16px; --grad:linear-gradient(135deg,#1C7C54 0%,#28A36D 100%); --pop:0 8px 24px rgba(0,0,0,.12);
   }
   * { box-sizing:border-box }
   html { -webkit-text-size-adjust:100% }
@@ -24,12 +24,12 @@
   /* ---------- (i) info icon + tooltip ---------- */
   .i { display:inline-grid; place-items:center; width:15px; height:15px; margin-left:6px; border-radius:50%; border:1px solid var(--mute); color:var(--mute); font:700 10px/1 Georgia, serif; font-style:italic; cursor:help; vertical-align:middle; flex:none; text-transform:none; letter-spacing:0 }
   .i:hover, .i:focus-visible { background:var(--accent); border-color:var(--accent); color:var(--accent-ink) }
-  #tip { position:fixed; z-index:100; max-width:300px; padding:8px 11px; border-radius:9px; background:#10201A; color:#F4F8F5; font:12.5px/1.4 -apple-system, "Segoe UI", sans-serif; font-weight:400; text-transform:none; letter-spacing:0; box-shadow:var(--pop); pointer-events:none; opacity:0; transform:translateY(2px); transition:opacity .12s, transform .12s; white-space:normal; text-align:left }
+  #tip { position:fixed; z-index:100; max-width:300px; padding:8px 11px; border-radius:9px; background:#1D1D1F; color:#fff; font:12.5px/1.4 -apple-system, "Segoe UI", sans-serif; font-weight:400; text-transform:none; letter-spacing:0; box-shadow:var(--pop); pointer-events:none; opacity:0; transform:translateY(2px); transition:opacity .12s, transform .12s; white-space:normal; text-align:left }
   #tip.on { opacity:1; transform:none }
 
   /* ---------- top bar ---------- */
   .topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:12px 24px; background:var(--grad); color:#fff }
-  .brand { font-family:Outfit, Inter, sans-serif; display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; letter-spacing:-.01em; min-width:196px }
+  .brand { font-family:"Red Hat Display", Inter, sans-serif; display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; letter-spacing:-.01em; min-width:196px }
   .logo { width:30px; height:30px; border-radius:9px; background:#fff; color:var(--accent); display:grid; place-items:center; font-size:15px; font-weight:800 }
   .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
   .seg { display:inline-flex; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); border-radius:10px; padding:2px }
@@ -92,7 +92,7 @@
   .kpi { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow) }
   .kpi .l { display:flex; align-items:center; color:var(--mute); font-size:12px; font-weight:600; letter-spacing:.02em; text-transform:uppercase }
   .kpi { border-top:3px solid var(--accent) }
-  .kpi .v { font-size:28px; font-weight:700; letter-spacing:-.02em; margin:4px 0 2px; line-height:1.1 } .kpi .s { color:var(--mute); font-size:12.5px }
+  .kpi .v { font-family:"Red Hat Display", Inter, sans-serif; font-size:28px; font-weight:700; letter-spacing:-.02em; margin:4px 0 2px; line-height:1.1 } .kpi .s { color:var(--mute); font-size:12.5px }
 
   /* ---------- tabs + table card ---------- */
   .tabs { display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:14px; overflow-x:auto }
@@ -119,7 +119,7 @@
   .dash { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; padding:16px }
   .panel { border:1px solid var(--line); border-radius:12px; padding:16px; background:var(--surface) }
   .panel h3 { display:flex; align-items:center; margin:0 0 12px; font-size:13px; color:var(--ink2); text-transform:uppercase; letter-spacing:.04em }
-  .big { font-size:34px; font-weight:700; letter-spacing:-.02em }
+  .big { font-family:"Red Hat Display", Inter, sans-serif; font-size:34px; font-weight:700; letter-spacing:-.02em }
   .bar { display:flex; height:12px; border-radius:999px; overflow:hidden; background:var(--na-bg); margin:12px 0 8px } .bar i { display:block; height:100% } .bar .a { background:var(--good) } .bar .b { background:#d6a93a }
   .legend { display:flex; justify-content:space-between; color:var(--ink2); font-size:13px } .legend span::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px } .legend .a::before { background:var(--good) } .legend .b::before { background:#d6a93a }
 
@@ -238,7 +238,7 @@ const PANEL_TIPS = {
   '20+ minute compliance': 'Share of recorded calls whose transcript ran 20 minutes or more. Green = 20+ min, gold = shorter.',
   'Student portal mentioned': 'Share of recorded calls where “portal” appears in the summary or transcript.',
 };
-const COLORS = ['#3D7A5A', '#2E7D5B', '#5B7A2B', '#3F6B52', '#7A4A24', '#8A3B5E', '#4F6B2F', '#6B5B2A', '#2A5C45'];
+const COLORS = ['#1C7C54', '#2E7D5B', '#5B7A2B', '#3F6B52', '#7A4A24', '#8A3B5E', '#4F6B2F', '#6B5B2A', '#2A5C45'];
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
