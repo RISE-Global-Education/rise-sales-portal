@@ -13,7 +13,7 @@
     --bg:#FBF8EF; --surface:#ffffff; --surface2:#F0EDE4; --ink:#1D1D1F; --ink2:#424245; --mute:#6B6B6B; --line:#E5E2D9; --line2:#F0EDE4;
     --accent:#1C7C54; --accent-dark:#155F40; --accent-light:#28A36D; --accent-soft:rgba(28,124,84,.10); --accent-ink:#ffffff;
     --good:#1C7C54; --good-bg:#D1FAE5; --warn:#92400E; --warn-bg:#FEF3C7; --bad:#DC2626; --bad-bg:#FEE2E2; --na:#6B6B6B; --na-bg:#F0EDE4;
-    --shadow:0 1px 3px rgba(0,0,0,.08); --radius:16px; --grad:linear-gradient(135deg,#155F40 0%,#1C7C54 55%,#28A36D 100%); --pop:0 8px 24px rgba(0,0,0,.12);
+    --shadow:0 1px 3px rgba(0,0,0,.08); --radius:16px; --tb:0px; --pop:0 8px 24px rgba(0,0,0,.12);
   }
   * { box-sizing:border-box }
   html { -webkit-text-size-adjust:100% }
@@ -27,23 +27,19 @@
   #tip { position:fixed; z-index:100; max-width:300px; padding:8px 11px; border-radius:9px; background:#1D1D1F; color:#fff; font:12.5px/1.4 -apple-system, "Segoe UI", sans-serif; font-weight:400; text-transform:none; letter-spacing:0; box-shadow:var(--pop); pointer-events:none; opacity:0; transform:translateY(2px); transition:opacity .12s, transform .12s; white-space:normal; text-align:left }
   #tip.on { opacity:1; transform:none }
 
-  /* ---------- top bar ---------- */
-  .topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:12px 24px; background:var(--grad); color:#fff }
-  .brand { font-family:"Red Hat Display", Inter, sans-serif; display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; letter-spacing:-.01em; min-width:196px }
-  .logo { width:30px; height:30px; border-radius:9px; background:#fff; color:var(--accent); display:grid; place-items:center; font-size:15px; font-weight:800 }
+  /* ---------- controls (LMS-style chips) ---------- */
   .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
-  .seg { display:inline-flex; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.35); border-radius:10px; padding:2px }
-  .seg button { border:0; background:none; padding:5px 12px; border-radius:8px; color:rgba(255,255,255,.92); font-weight:500 }
-  .seg button[aria-pressed="true"] { background:#fff; color:var(--accent); font-weight:700; box-shadow:var(--shadow) }
-  .datebox { display:inline-flex; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:10px }
-  .datebox > button { border:0; background:none; padding:7px 11px; color:var(--ink2); line-height:1 }
+  .seg { display:inline-flex; gap:8px }
+  .seg button { border:1px solid var(--line); background:var(--surface2); padding:7px 16px; border-radius:999px; color:var(--mute); font-weight:600; font-size:13px }
+  .seg button:hover { color:var(--ink) }
+  .seg button[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:#fff }
+  .datebox { display:inline-flex; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow) }
+  .datebox > button { border:0; background:none; padding:8px 12px; color:var(--ink2); line-height:1 }
   .datebox > button:hover:not(:disabled) { background:var(--bg) } .datebox > button:disabled { opacity:.35; cursor:default }
-  .datebox > button:first-child { border-radius:9px 0 0 9px } .datebox > button:last-child { border-radius:0 9px 9px 0 }
+  .datebox > button:first-child { border-radius:11px 0 0 11px } .datebox > button:last-child { border-radius:0 11px 11px 0 }
   .datebox .cur { display:flex; align-items:center; gap:8px; font-weight:600; color:var(--ink); min-width:176px; justify-content:center; border-left:1px solid var(--line); border-right:1px solid var(--line) }
-  .datebox.range .cur { border:0; border-radius:9px }
+  .datebox.range .cur { border:0; border-radius:11px }
   .calwrap { position:relative }
-  .topbar .i { border-color:rgba(255,255,255,.8); color:#fff }
-  .topbar .i:hover, .topbar .i:focus-visible { background:#fff; border-color:#fff; color:var(--accent) }
   .hide { display:none !important }
 
   /* ---------- calendar widget ---------- */
@@ -66,48 +62,52 @@
   .d.s { border-radius:8px 0 0 8px } .d.e { border-radius:0 8px 8px 0 } .d.s.e { border-radius:8px }
   .calfoot { margin-top:8px; padding-top:8px; border-top:1px solid var(--line2); color:var(--mute); font-size:12px }
 
-  /* ---------- layout ---------- */
-  .shell { display:grid; grid-template-columns:232px minmax(0,1fr); gap:20px; max-width:1680px; margin:0 auto; padding:20px 24px 40px }
-  .rail { position:sticky; top:calc(var(--tb,64px) + 14px); align-self:start; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:10px; box-shadow:var(--shadow); max-height:calc(100vh - var(--tb,64px) - 28px); overflow:auto }
-  .rail h4 { display:flex; align-items:center; margin:8px 10px 6px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute); font-weight:600 }
-  .person { display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:0; background:none; padding:8px 10px; border-radius:10px; color:var(--ink2) }
-  .person:hover { background:var(--bg) } .person[aria-current="true"] { background:var(--accent-soft); color:var(--ink); font-weight:600 }
+  /* ---------- layout: sidebar + page (same structure as the RISE LMS) ---------- */
+  .shell { display:grid; grid-template-columns:260px minmax(0,1fr); min-height:100vh }
+  .side { position:sticky; top:0; height:100vh; display:flex; flex-direction:column; background:var(--surface); border-right:1px solid var(--line) }
+  .brand { font-family:"Red Hat Display", Inter, sans-serif; color:var(--accent); font-weight:700; font-size:20px; letter-spacing:-.3px; padding:22px 24px 14px; margin:0 16px; border-bottom:1px solid var(--line2); text-align:center }
+  .brand small { display:block; color:var(--mute); font:500 12px Inter, sans-serif; letter-spacing:0; margin-top:2px }
+  .rail { flex:1; overflow:auto; padding:12px 10px 16px }
+  .rail h4 { display:flex; align-items:center; margin:14px 12px 6px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute); font-weight:600 }
+  .person { display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:0; background:none; padding:8px 12px; border-radius:12px; color:var(--mute); font-weight:500; font-size:14.5px }
+  .person:hover { background:var(--surface2); color:var(--ink) } .person[aria-current="true"] { background:var(--accent-soft); color:var(--accent); font-weight:600 }
   .avatar { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:700; color:#fff; flex:none }
-  .avatar.all { background:var(--ink); color:var(--surface) } .person .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .avatar.all { background:var(--accent); color:#fff } .person .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
-  main { min-width:0 }
-  .infobar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; position:relative }
+  main { min-width:0; padding:40px 40px 64px }
+  .page-title { margin:0; font-family:"Red Hat Display", Inter, sans-serif; font-size:32px; font-weight:700; letter-spacing:-.5px; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .page-sub { margin:6px 0 18px; color:var(--mute); font-size:15px }
+  .infobar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; position:relative; flex-wrap:wrap }
   .scope { display:flex; align-items:center; gap:8px; min-width:0 }
-  .scope h2 { margin:0; font-size:20px; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
   .scope .sub { color:var(--mute); white-space:nowrap }
-  .help { height:26px; flex:none; border-radius:999px; border:1px solid var(--line); background:var(--surface); color:var(--ink2); font-weight:600; font-size:12.5px; padding:0 11px }
+  .help { height:32px; flex:none; border-radius:999px; border:1px solid var(--line); background:var(--surface2); color:var(--ink2); font-weight:600; font-size:13px; padding:0 14px }
   .help:hover { border-color:var(--accent); color:var(--accent) }
-  .pop { display:none; position:absolute; top:40px; left:0; z-index:15; width:min(480px,92vw); background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--pop) }
+  .pop { display:none; position:absolute; top:44px; left:0; z-index:15; width:min(480px,92vw); background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:14px 16px; box-shadow:var(--pop) }
   .pop.show { display:block } .pop h5 { margin:0 0 6px; font-size:13px } .pop ul { margin:0; padding-left:18px; color:var(--ink2) } .pop li { margin:4px 0 }
-  .stamp { display:flex; align-items:center; gap:8px; color:var(--mute); font-size:12.5px; background:var(--surface); border:1px solid var(--line); padding:5px 12px; border-radius:999px; white-space:nowrap }
+  .stamp { display:flex; align-items:center; gap:8px; color:var(--mute); font-size:12.5px; background:var(--surface); border:1px solid var(--line); padding:6px 14px; border-radius:999px; white-space:nowrap }
   .dot { width:8px; height:8px; border-radius:50%; background:var(--good) } .dot.old { background:#d99a1c }
 
   /* ---------- KPI cards ---------- */
   .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px }
-  .kpi { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow) }
+  .kpi { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow) }
   .kpi .l { display:flex; align-items:center; color:var(--mute); font-size:12px; font-weight:600; letter-spacing:.02em; text-transform:uppercase }
-  .kpi { border-top:3px solid var(--accent) }
   .kpi .v { font-family:"Red Hat Display", Inter, sans-serif; font-size:28px; font-weight:700; letter-spacing:-.02em; margin:4px 0 2px; line-height:1.1 } .kpi .s { color:var(--mute); font-size:12.5px }
 
   /* ---------- tabs + table card ---------- */
-  .tabs { display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:14px; overflow-x:auto; scrollbar-width:none; position:sticky; top:var(--tb,64px); z-index:15; background:var(--bg); padding-top:4px }
-  .tab { display:flex; align-items:center; border:0; background:none; padding:10px 14px; color:var(--mute); font-weight:600; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap }
-  .tab:hover { color:var(--ink) } .tab[aria-selected="true"] { color:var(--accent); border-bottom-color:var(--accent) }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; scrollbar-width:none; position:sticky; top:0; z-index:15; background:var(--bg); padding:8px 0 10px }
+  .tab { display:flex; align-items:center; border:1px solid var(--line); background:var(--surface2); padding:7px 16px; border-radius:999px; color:var(--mute); font-weight:600; font-size:13px; white-space:nowrap }
+  .tab:hover { color:var(--ink) } .tab[aria-selected="true"] { background:var(--accent); border-color:var(--accent); color:#fff }
+  .tab .i { border-color:currentColor; color:inherit; opacity:.75 }
   .card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden }
-  .scroller { overflow:auto; max-height:calc(100vh - var(--tb,64px) - var(--tabs,52px) - 64px); min-height:140px }
+  .scroller { overflow:auto; max-height:calc(100vh - var(--tabs,52px) - 72px); min-height:140px }
   table { border-collapse:separate; border-spacing:0; width:100% }
-  th, td { padding:10px 14px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--line2) }
-  th { position:sticky; top:0; z-index:2; background:var(--surface2); color:var(--accent-dark); box-shadow:0 1px 0 var(--line); font-size:12px; font-weight:600; border-bottom:1px solid var(--line); cursor:pointer; user-select:none; vertical-align:bottom }
-  th:hover { color:var(--ink) } th small { display:block; color:var(--mute); font-weight:500; font-size:11px }
+  th, td { padding:12px 16px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--line2) }
+  th { position:sticky; top:0; z-index:2; background:var(--surface2); color:var(--mute); text-transform:uppercase; letter-spacing:.5px; font-size:12px; font-weight:600; border-bottom:1px solid var(--line); cursor:pointer; user-select:none; vertical-align:bottom }
+  th:hover { color:var(--ink) } th small { display:block; color:var(--mute); font-weight:500; font-size:11px; text-transform:none; letter-spacing:0 }
   th .ar { opacity:.35; margin-left:4px } th.sorted .ar { opacity:1; color:var(--accent) }
   td.l, th.l { text-align:left }
-  td:first-child, th:first-child { position:sticky; left:0; background:var(--surface); z-index:1 } th:first-child { z-index:3; background:var(--surface2) }
-  tbody tr:hover td { background:#F7F4EC } tr.team td { font-weight:700; background:var(--surface2); border-top:1px solid var(--line) }
+  td:first-child, th:first-child { position:sticky; left:0; background:var(--surface); z-index:1; font-weight:600; color:var(--accent) } th:first-child { z-index:3; background:var(--surface2); color:var(--mute); font-weight:600 }
+  tbody tr:hover td { background:#FBF8EF } tr.team td { font-weight:700; background:var(--surface2); border-top:1px solid var(--line) }
   td.txt { white-space:normal; min-width:240px; max-width:420px; color:var(--ink2) }
   td.txt .clamp { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
   .pill { display:inline-block; min-width:42px; text-align:center; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600 }
@@ -128,9 +128,10 @@
   .login input { padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--bg) } .login button { padding:10px; border:0; border-radius:10px; background:var(--accent); color:var(--accent-ink); font-weight:600 }
 
   @media (max-width:900px) {
-    .topbar { padding:10px 14px } .brand { min-width:0 }
-    .shell { grid-template-columns:1fr; padding:14px } .rail { position:static; display:flex; gap:6px; overflow-x:auto; padding:8px; max-height:none }
-    .rail h4 { display:none } .person { width:auto; white-space:nowrap; flex:none } .scroller { max-height:none }
+    .shell { grid-template-columns:1fr } .side { position:static; height:auto; border-right:0; border-bottom:1px solid var(--line) }
+    .brand { margin:0 14px; padding:14px 0 10px; text-align:left } .rail { display:flex; gap:6px; overflow-x:auto; padding:8px 10px; flex:none }
+    .rail h4 { display:none } .person { width:auto; white-space:nowrap; flex:none } main { padding:20px 14px 40px }
+    .page-title { font-size:26px } .scroller { max-height:none }
     .infobar { flex-wrap:wrap } .kpi .v { font-size:24px } .kpis { grid-template-columns:repeat(2,minmax(0,1fr)) }
     .cal { flex-direction:column; left:auto; right:0 } .presets { flex-direction:row; flex-wrap:wrap; border-right:0; border-bottom:1px solid var(--line) } .calbody { width:min(288px,calc(100vw - 40px)) }
   }
@@ -139,44 +140,42 @@
 <body>
 <div id="tip" role="tooltip"></div>
 
-<header class="topbar">
-  <div class="brand"><div class="logo">S</div>Sales portal</div>
-  <div class="controls">
-    <div class="seg" role="group" aria-label="Date mode">
-      <button id="mDay" aria-pressed="true">Day</button><button id="mRange" aria-pressed="false">Date range</button>
-    </div>
-    <span class="i" tabindex="0" data-tip="Choose one day, or a date range. Every number on the page follows this selection. Click the date to open the calendar." style="margin:0"></span>
-    <div class="calwrap" id="calwrap">
-      <div class="datebox" id="datebox">
-        <button id="prev" aria-label="Previous day">‹</button>
-        <button class="cur" id="calBtn" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true">📅</span><span id="calLabel"></span></button>
-        <button id="next" aria-label="Next day">›</button>
-      </div>
-      <div class="cal hide" id="cal" role="dialog" aria-label="Choose dates"></div>
-    </div>
-  </div>
-</header>
-
 <div class="shell">
-  <nav class="rail" id="rail" aria-label="People"></nav>
+  <aside class="side">
+    <div class="brand">RISE Research<small>Sales portal</small></div>
+    <nav class="rail" id="rail" aria-label="People"></nav>
+  </aside>
   <main>
+    <h1 class="page-title" id="scopeName">Global view</h1>
+    <p class="page-sub" id="scopeSub"></p>
     <div class="infobar">
-      <div class="scope">
-        <h2 id="scopeName">Global view</h2><span class="i" tabindex="0" id="scopeTip" style="margin:0"></span>
-        <span class="sub" id="scopeSub"></span>
-        <button class="help" id="infoBtn">How it’s calculated</button>
-        <div class="pop" id="pop" role="dialog">
-          <h5>How the numbers are calculated</h5>
-          <ul>
-            <li>A meeting counts only if it is recorded on Granola <b>or</b> the post-call sequence was sent through HubSpot.</li>
-            <li>Closed Won = deals in the Sales Pipeline's Closed Won stage.</li>
-            <li>Overdue Tasks = tasks overdue right now (not completed and past their due time in HubSpot). Pending, created and completed tasks are not shown.</li>
-            <li>Coloured chips use the sheet's targets: Portal 80%+, 20-min calls 50%+, average call 20+ min, conversion 30%+.</li>
-            <li>All dates are in India time (IST).</li>
-          </ul>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Date mode">
+          <button id="mDay" aria-pressed="true">Day</button><button id="mRange" aria-pressed="false">Date range</button>
         </div>
+        <span class="i" tabindex="0" data-tip="Choose one day, or a date range. Every number on the page follows this selection. Click the date to open the calendar." style="margin:0"></span>
+        <div class="calwrap" id="calwrap">
+          <div class="datebox" id="datebox">
+            <button id="prev" aria-label="Previous day">‹</button>
+            <button class="cur" id="calBtn" aria-haspopup="dialog" aria-expanded="false"><span aria-hidden="true">📅</span><span id="calLabel"></span></button>
+            <button id="next" aria-label="Next day">›</button>
+          </div>
+          <div class="cal hide" id="cal" role="dialog" aria-label="Choose dates"></div>
+        </div>
+        <span class="i" tabindex="0" id="scopeTip" style="margin:0"></span>
+        <button class="help" id="infoBtn">How it’s calculated</button>
       </div>
       <div class="stamp"><span class="dot" id="dot"></span><span id="stampTxt">Loading…</span><span class="i" tabindex="0" data-tip="When the data was last pulled from HubSpot and Granola. It refreshes automatically; the dot turns amber if the data is more than a day old."></span></div>
+      <div class="pop" id="pop" role="dialog">
+        <h5>How the numbers are calculated</h5>
+        <ul>
+          <li>A meeting counts only if it is recorded on Granola <b>or</b> the post-call sequence was sent through HubSpot.</li>
+          <li>Closed Won = deals in the Sales Pipeline's Closed Won stage.</li>
+          <li>Overdue Tasks = tasks overdue right now (not completed and past their due time in HubSpot). Pending, created and completed tasks are not shown.</li>
+          <li>Coloured chips use the sheet's targets: Portal 80%+, 20-min calls 50%+, average call 20+ min, conversion 30%+.</li>
+          <li>Each person's dates follow their own time zone (India or US Eastern).</li>
+        </ul>
+      </div>
     </div>
     <section class="kpis" id="kpis"></section>
     <div class="tabs" id="tabs" role="tablist"></div>
