@@ -17,6 +17,6 @@ const report = require('./lib/report');
   const snap = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'snapshot.json'), 'utf8'));
   const kind = process.argv[2] === 'weekly' ? 'weekly' : 'daily';
   const m = report[kind](snap.data);
-  await mailer.send(process.env.SMTP_USER, '[TEST] ' + m.subject, m.html);
+  await mailer.send(process.env.SMTP_USER, '[TEST] ' + m.subject, m.html, m.text);
   console.log(`Test ${kind} email sent to ${process.env.SMTP_USER}. Check that inbox.`);
 })().catch((e) => console.error('Failed:', e.message));
