@@ -171,7 +171,6 @@
           <h5>How the numbers are calculated</h5>
           <ul>
             <li>A meeting counts only if it is recorded on Granola <b>or</b> the post-call sequence was sent through HubSpot.</li>
-            <li>A HubSpot meeting with no Granola transcript is a no-show (a missed meeting is ignored if the same contact has a later one).</li>
             <li>Closed Won = deals in the Sales Pipeline's Closed Won stage.</li>
             <li>Overdue tasks are rebuilt from HubSpot task due and completion times: a task is overdue on a day if it was past due and not yet completed by the end of that day.</li>
             <li>Coloured chips use the sheet's targets: Portal 80%+, 20-min calls 50%+, average call 20+ min, conversion 30%+.</li>
@@ -189,11 +188,11 @@
 
 <script>
 const TABS = [
-  { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, no-show follow-up, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
+  { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
   { id: 'dashboard', label: 'Dashboard', tip: 'Granola meeting compliance: how many calls were recorded, how many ran 20+ minutes, and how many mentioned the student portal.' },
   { id: 'daily', label: 'Daily Tracker', tip: 'One row per person per day with meeting activity, filled automatically (the sheet’s hand-filled daily tab).' },
   { id: 'tracker', label: 'Meeting Tracker', tip: 'Every recorded Granola meeting in the selected dates, with duration, portal mention, a link to the note and a short summary.' },
-  { id: 'metrics', label: 'Metrics Summary', tip: 'Every metric in one table: closed deals, meetings, contacts and bookings, close rates, no-shows, follow-ups and tasks.' },
+  { id: 'metrics', label: 'Metrics Summary', tip: 'Every metric in one table: closed deals, meetings, contacts and bookings, close rates, follow-ups and tasks.' },
   { id: 'pipeline', label: 'Deal Pipeline', tip: 'Deals moving between Sales Pipeline stages in the selected dates, and how many deals are open in each stage right now.' },
 ];
 let TARGETS = {}; // loaded from the server (lib/config.js) with the data
@@ -202,10 +201,8 @@ const HINTS = {
   'Team Member': 'The sales rep (or the Team total).', 'Person': 'The sales rep.', 'Date': 'The day (India time).',
   // compliance
   'Avg Overdue Tasks': 'Average, over each day in the selected dates, of how many of the rep’s tasks were past due and not yet completed at the end of that day (rebuilt from HubSpot task due and completion times).',
-  'Total No-Shows': 'HubSpot meetings in the dates that have no Granola recording (cancelled, rescheduled, future and duplicate meetings excluded).',
   'Granola Compliance': 'Meetings recorded on Granola ÷ meetings taken.',
   'Post-Call Compliance': 'Recorded calls where the post-call sequence was sent within 7 days ÷ recorded calls.',
-  'No-Show Sequence Compliance': 'No-shows that received the no-show email ÷ no-shows. Blank if there were no no-shows.',
   'Portal Compliance': 'Granola notes that mention the student portal ÷ all Granola notes. Target 80%+.',
   '20 Min Duration Compliance': 'Granola notes with a transcript of 20 minutes or more ÷ notes with a duration. Target 50%+.',
   'Average Call Duration': 'Average Granola transcript length in minutes (first to last spoken line). Target 20+.',
@@ -217,8 +214,6 @@ const HINTS = {
   'Overdue Tasks (Count)': 'How many of the person’s tasks were past due and not yet completed at the end of that day.',
   'Granola Recorded': 'Yes = every meeting taken was recorded; No = at least one wasn’t; NA = no meetings.',
   'Post-Call Sequence Sent': 'Yes = every recorded call got the post-call sequence; No = at least one is missing; NA = no recorded calls.',
-  'No-Shows (Count)': 'Meetings that day with no Granola recording.',
-  'No-Show Template Sent': 'Yes = every no-show got the no-show email; No = at least one didn’t; NA = no no-shows.',
   // tracker
   'Meeting': 'The meeting title from Granola.', 'Owner': 'The rep who owns the Granola note.', 'Attendees': 'People on the call (hover the text for the full list).',
   'Scheduled Duration (min)': 'Length of the calendar event.', 'Actual Transcript Duration (min)': 'First to last spoken line in the transcript.',
@@ -228,7 +223,6 @@ const HINTS = {
   'Closed Won': 'Deals that reached Closed Won in the selected dates.', 'Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent.',
   'Contacts': 'HubSpot contacts created in the selected dates and assigned to the rep.', 'Booked Call': 'Those contacts who booked a call through HubSpot’s meetings tool.',
   'Lead-to-Meeting %': 'Contacts who booked a call ÷ contacts.', 'Close Rate (of meetings)': 'Closed Won ÷ meetings taken.', 'Close Rate (of contacts)': 'Closed Won ÷ contacts.',
-  'No-Shows': 'Meetings with no Granola recording.', 'No-Show Seq Sent': 'No-shows that received the no-show email.',
   'Post-Call Sent': 'Recorded calls where the post-call sequence was sent.', 'Post-Call Pending': 'Recorded calls where it hasn’t been sent yet.',
   'Tasks Created': 'Tasks created in the selected dates.', 'Tasks Completed': 'Of those, tasks marked completed.',
   'Tasks Pending': 'Of those, not completed and not yet due.', 'Tasks Overdue': 'Of those, not completed and already past due.',
@@ -409,7 +403,7 @@ function renderKpis() {
   const n = (k) => (typeof m[k] === 'number' ? m[k].toLocaleString() : m[k]);
   const cards = [
     ['Closed Won', n('Closed Won'), `${n('Meetings Taken')} meetings taken`],
-    ['Meetings Taken', n('Meetings Taken'), `${n('No-Shows')} no-shows`],
+    ['Meetings Taken', n('Meetings Taken'), `${m['Post-Call Sent'] + m['Post-Call Pending']} recorded on Granola`],
     ['New Contacts', n('Contacts'), `${n('Booked Call')} booked a call`],
     ['Lead → Meeting', n('Lead-to-Meeting %'), `${n('Booked Call')} booked / ${n('Contacts')} contacts`],
     ['Close Rate', n('Close Rate (of meetings)'), `of meetings · ${n('Close Rate (of contacts)')} of contacts`],
