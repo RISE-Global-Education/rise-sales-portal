@@ -36,6 +36,7 @@ http.createServer(async (req, res) => {
   }
   const p = path.join(__dirname, 'public', url.pathname === '/' ? 'index.html' : path.normalize(url.pathname));
   if (!p.startsWith(path.join(__dirname, 'public')) || !fs.existsSync(p)) { res.writeHead(404); return res.end('Not found'); }
-  res.writeHead(200, { 'Content-Type': 'text/html' });
+  const types = { '.html': 'text/html', '.ttf': 'font/ttf', '.txt': 'text/plain', '.png': 'image/png', '.css': 'text/css', '.js': 'text/javascript' };
+  res.writeHead(200, { 'Content-Type': types[path.extname(p)] || 'text/html' });
   res.end(fs.readFileSync(p));
 }).listen(process.env.PORT || 3000, () => console.log('Sales portal on http://localhost:' + (process.env.PORT || 3000)));

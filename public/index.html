@@ -5,8 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>Sales Portal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Red+Hat+Display:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
+  /* fonts bundled locally (same files as the RISE LMS; SIL OFL, see /fonts/OFL.txt) */
+  @font-face { font-family:'Inter'; src:url('/fonts/Inter-Regular.ttf') format('truetype'); font-weight:400; font-display:swap }
+  @font-face { font-family:'Inter'; src:url('/fonts/Inter-Medium.ttf') format('truetype'); font-weight:500; font-display:swap }
+  @font-face { font-family:'Inter'; src:url('/fonts/Inter-SemiBold.ttf') format('truetype'); font-weight:600; font-display:swap }
+  @font-face { font-family:'Inter'; src:url('/fonts/Inter-Bold.ttf') format('truetype'); font-weight:700; font-display:swap }
+  @font-face { font-family:'Red Hat Display'; src:url('/fonts/RedHatDisplay-Medium.ttf') format('truetype'); font-weight:500; font-display:swap }
+  @font-face { font-family:'Red Hat Display'; src:url('/fonts/RedHatDisplay-SemiBold.ttf') format('truetype'); font-weight:600; font-display:swap }
+  @font-face { font-family:'Red Hat Display'; src:url('/fonts/RedHatDisplay-Bold.ttf') format('truetype'); font-weight:700; font-display:swap }
   :root {
     color-scheme: light;
     /* RISE look: white page, RISE LMS design tokens: primary #1C7C54, cream #FBF8EF, Red Hat Display + Inter, radii 8/12/16 accents, dark green-black text. No blues. */
@@ -75,6 +82,13 @@
   .ico { width:20px; height:20px; flex:none } .nav-item .i { margin-left:auto } .nav-item { padding:10px 12px; gap:9px; font-size:14px } .nav-item .i { margin-left:auto }
   .filter { display:inline-flex; align-items:center; gap:4px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:0 4px 0 14px; height:36px; box-shadow:var(--shadow); color:var(--mute); font-weight:500; font-size:13.5px }
   .filter select { border:0; background:none; font-weight:600; color:var(--ink); padding:8px 8px 8px 2px; outline-offset:2px; cursor:pointer; font-size:13.5px }
+  .side-foot { display:flex; align-items:center; gap:10px; padding:14px 18px; border-top:1px solid var(--line2) }
+  .side-foot .av { width:34px; height:34px; border-radius:50%; background:var(--accent-soft); color:var(--accent); display:grid; place-items:center; font-weight:700 } .side-foot b { display:block; font-size:13.5px } .side-foot small { color:var(--mute); font-size:12px }
+  .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:8px }
+  .search { flex:1; max-width:460px; display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:0 14px; height:40px; box-shadow:var(--shadow); color:var(--mute) }
+  .search input { flex:1; border:0; outline:0; background:none; font-size:14px; color:var(--ink) } .search svg { width:18px; height:18px; flex:none }
+  .chipbtn { border:1px solid var(--line); background:var(--surface2); color:var(--ink2); border-radius:999px; padding:8px 16px; font-weight:600; font-size:13px } .chipbtn:hover { border-color:var(--accent); color:var(--accent) }
+  .hint { margin:0 0 14px; color:var(--mute); font-size:12.5px }
   .avatar.all { background:var(--accent); color:#fff } .person .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
   main { min-width:0; padding:40px 40px 64px }
@@ -154,7 +168,8 @@
 <div class="shell">
   <aside class="side">
     <div class="brand">RISE Research<small>Sales portal</small></div>
-    <nav class="rail" id="rail" aria-label="People"></nav>
+    <nav class="rail" id="rail" aria-label="Views"></nav>
+    <div class="side-foot"><div class="av">S</div><div><b>Sales team</b><small>Internal · RISE Research</small></div></div>
   </aside>
   <main>
     <h1 class="page-title" id="scopeName">Global view</h1>
@@ -189,6 +204,11 @@
         </ul>
       </div>
     </div>
+    <div class="toolbar" id="toolbar">
+      <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search this table…" autocomplete="off"></label>
+      <button class="chipbtn" id="refreshBtn">Refresh</button>
+    </div>
+    <p class="hint" id="hint"></p>
     <section class="kpis" id="kpis"></section>
     <div class="card"><div id="view"></div><div class="foot" id="note" hidden></div></div>
   </main>
@@ -200,6 +220,7 @@ function setOffsets(){ const r=document.documentElement.style, t=document.queryS
 addEventListener("resize", setOffsets); addEventListener("load", setOffsets); new MutationObserver(setOffsets).observe(document.documentElement,{childList:true,subtree:true}); setOffsets();
 document.getElementById('menuBtn').onclick = () => { document.body.classList.toggle('nav'); document.getElementById('menuBtn').textContent = document.body.classList.contains('nav') ? '✕' : '☰'; };
 document.getElementById('scrim').onclick = () => { document.body.classList.remove('nav'); document.getElementById('menuBtn').textContent = '☰'; };
+const COPY = { dashboard: ['How well recorded meetings follow the process: Granola recording, 20+ minute calls and portal mentions.', 'Use the Team member filter and the date picker to change what you see.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'] };
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', tip: 'Granola meeting compliance: how many calls were recorded, how many ran 20+ minutes, and how many mentioned the student portal.' },
   { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
@@ -394,8 +415,9 @@ function render() {
   $('scopeName').textContent = cur.label;
   $('scopeTip').dataset.tip = S.rep ? `Showing only ${S.rep}’s numbers. Use the Team member filter to change it.` : 'Showing all reps combined. Use the Team member filter to see one person.';
   $('scopeTip').textContent = 'i';
-  const when = f === t ? fmtLong(f) : f.startsWith('2000') ? 'All time' : `${fmtDate(f)} – ${fmtDate(t)}`;
-  $('scopeSub').textContent = (S.rep || 'Global view') + ' · ' + when;
+  $('scopeSub').textContent = COPY[cur.id][0];
+  $('hint').textContent = COPY[cur.id][1];
+  $('toolbar').querySelector('.search').style.display = S.tab === 'dashboard' ? 'none' : 'flex';
   $('kpis').hidden = S.tab !== 'dashboard'; // the summary cards belong to the Dashboard view only
   renderKpis();
 
@@ -443,12 +465,14 @@ const num = (v) => { if (typeof v === 'number') return v; const x = parseFloat(S
 
 function table(id, rows) {
   const cols = Object.keys(rows[0]), s = S.sort[id];
-  let body = rows.slice(), team = null;
+  const q = (S.q || '').trim().toLowerCase();
+  let body = q ? rows.filter((r) => r['Team Member'] === 'Team' || cols.some((c) => String(r[c]).toLowerCase().includes(q))) : rows.slice(), team = null;
   const ti = body.findIndex((r) => r['Team Member'] === 'Team'); if (ti >= 0) team = body.splice(ti, 1)[0];
   if (s) body.sort((a, b) => { const x = num(a[s.col]), y = num(b[s.col]); return (x != null && y != null ? x - y : String(a[s.col]).localeCompare(String(b[s.col]))) * s.dir; });
   if (team) body.push(team);
   const left = ['Attendees', 'Summary', 'Meeting', 'Granola Note', 'Owner', 'Person', 'Date'];
   const head = cols.map((c, i) => `<th data-c="${esc(c)}" class="${i === 0 || left.includes(c) ? 'l' : ''} ${s && s.col === c ? 'sorted' : ''}">${esc(c)}${ic(hint(c))}<span class="ar">${s && s.col === c ? (s.dir === 1 ? '↑' : '↓') : '↕'}</span>${TARGETS[c] != null ? `<small>target ${TARGETS[c]}${c === 'Average Call Duration' ? ' min' : '%'}+</small>` : ''}</th>`).join('');
+  if (q && !body.some((r) => r['Team Member'] !== 'Team')) return '<div class="empty"><b>No matches</b>Nothing in this table matches “' + esc(S.q) + '”.</div>';
   return `<div class="scroller"><table><thead><tr>${head}</tr></thead><tbody>${body.map((r) => `<tr class="${r['Team Member'] === 'Team' ? 'team' : ''}">${cols.map((c) => cell(c, r[c])).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -471,6 +495,8 @@ document.querySelector('.stamp .i').textContent = 'i';
 syncControls();
 load();
 setInterval(() => { if (!document.hidden && S.D) load(true); }, 5 * 60 * 1000); // pick up newly refreshed data without a manual reload
+document.getElementById('q').addEventListener('input', (e) => { S.q = e.target.value; if (S.D) render(); });
+document.getElementById('refreshBtn').addEventListener('click', async (e) => { const b = e.currentTarget; b.textContent = 'Refreshing…'; b.disabled = true; try { await load(); } finally { b.textContent = 'Refresh'; b.disabled = false; } });
 </script>
 </body>
 </html>
