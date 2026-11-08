@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>Sales Portal</title>
+<title>Sales Portal · RISE Research</title>
 <style>
   /* fonts bundled locally (same files as the RISE LMS; SIL OFL, see /fonts/OFL.txt) */
   @font-face { font-family:'Inter'; src:url('/fonts/Inter-Regular.ttf') format('truetype'); font-weight:400; font-display:swap }
@@ -88,6 +88,12 @@
   .search { flex:1; max-width:460px; display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:0 14px; height:40px; box-shadow:var(--shadow); color:var(--mute) }
   .search input { flex:1; border:0; outline:0; background:none; font-size:14px; color:var(--ink) } .search svg { width:18px; height:18px; flex:none }
   .chipbtn { border:1px solid var(--line); background:var(--surface2); color:var(--ink2); border-radius:999px; padding:8px 16px; font-weight:600; font-size:13px } .chipbtn:hover { border-color:var(--accent); color:var(--accent) }
+  /* LMS interaction details: 3px green focus ring on fields, darker green on hover/pressed */
+  .search:focus-within, .filter:focus-within { border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
+  .seg button[aria-pressed="true"]:hover { background:var(--accent-dark); border-color:var(--accent-dark); color:#fff }
+  .chipbtn:active, .help:active, .seg button:active { background:var(--accent-soft) }
+  .kpi, .panel { transition:box-shadow .15s, transform .15s } .kpi:hover { box-shadow:0 4px 12px rgba(0,0,0,.10); transform:translateY(-1px) }
+  @media (prefers-reduced-motion:reduce) { *, *::before, *::after { transition:none !important; animation-duration:.01ms !important } }
   .hint { margin:0 0 14px; color:var(--mute); font-size:12.5px }
   .avatar.all { background:var(--accent); color:#fff } .person .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
