@@ -201,8 +201,8 @@ addEventListener("resize", setOffsets); addEventListener("load", setOffsets); ne
 document.getElementById('menuBtn').onclick = () => { document.body.classList.toggle('nav'); document.getElementById('menuBtn').textContent = document.body.classList.contains('nav') ? '✕' : '☰'; };
 document.getElementById('scrim').onclick = () => { document.body.classList.remove('nav'); document.getElementById('menuBtn').textContent = '☰'; };
 const TABS = [
-  { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
   { id: 'dashboard', label: 'Dashboard', tip: 'Granola meeting compliance: how many calls were recorded, how many ran 20+ minutes, and how many mentioned the student portal.' },
+  { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
   { id: 'daily', label: 'Daily Tracker', tip: 'One row per person per day with meeting activity, filled automatically (the sheet’s hand-filled daily tab).' },
   { id: 'tracker', label: 'Meeting Tracker', tip: 'Every recorded Granola meeting in the selected dates, with duration, portal mention, a link to the note and a short summary.' },
   { id: 'metrics', label: 'Metrics Summary', tip: 'Every metric in one table: closed deals, meetings, contacts and bookings, close rates, follow-ups and tasks.' },
@@ -269,7 +269,7 @@ const initials = (n) => n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toU
 const color = (n) => COLORS[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 
-let S = { tab: TABS.some((t) => t.id === store.get('sp.tab')) ? store.get('sp.tab') : 'compliance', rep: '', mode: 'day', day: shift(today, -1), from: today.slice(0, 8) + '01', to: today, view: shift(today, -1).slice(0, 7), pending: null, hover: null, D: null, sort: {} };
+let S = { tab: TABS.some((t) => t.id === store.get('sp.tab')) ? store.get('sp.tab') : 'dashboard', rep: '', mode: 'day', day: shift(today, -1), from: today.slice(0, 8) + '01', to: today, view: shift(today, -1).slice(0, 7), pending: null, hover: null, D: null, sort: {} };
 const sel = () => (S.mode === 'day' ? [S.day, S.day] : [S.from, S.to]);
 
 // ---------- tooltip ----------
