@@ -70,16 +70,16 @@
   .calfoot { margin-top:8px; padding-top:8px; border-top:1px solid var(--line2); color:var(--mute); font-size:12px }
 
   /* ---------- layout: sidebar + page (same structure as the RISE LMS) ---------- */
-  .shell { display:grid; grid-template-columns:280px minmax(0,1fr); min-height:100vh }
+  .shell { display:grid; grid-template-columns:260px minmax(0,1fr); min-height:100vh }
   .side { position:sticky; top:0; height:100vh; display:flex; flex-direction:column; background:var(--surface); border-right:1px solid var(--line) }
-  .brand { font-family:"Red Hat Display", Inter, sans-serif; color:var(--accent); font-weight:700; font-size:20px; letter-spacing:-.3px; padding:22px 24px 14px; margin:0 16px; border-bottom:1px solid var(--line2); text-align:center }
+  .brand { font-family:"Red Hat Display", Inter, sans-serif; color:var(--accent); font-weight:600; font-size:16px; letter-spacing:-.2px; line-height:1.2; padding:16px 16px 14px; border-bottom:1px solid var(--line); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
   .brand small { display:block; color:var(--mute); font:500 12px Inter, sans-serif; letter-spacing:0; margin-top:2px }
-  .rail { flex:1; overflow:auto; padding:12px 10px 16px }
+  .rail { flex:1; overflow:auto; padding:12px 8px 16px; display:flex; flex-direction:column; gap:2px }
   .rail h4 { display:flex; align-items:center; margin:14px 12px 6px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute); font-weight:600 }
   .person { display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:0; background:none; padding:8px 12px; border-radius:12px; color:var(--mute); font-weight:500; font-size:14.5px }
   .person:hover { background:var(--surface2); color:var(--ink) } .person[aria-current="true"] { background:var(--accent-soft); color:var(--accent); font-weight:600 }
   .avatar { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:700; color:#fff; flex:none }
-  .ico { width:20px; height:20px; flex:none } .nav-item .i { margin-left:auto } .nav-item { padding:10px 12px; gap:9px; font-size:14px } .nav-item .i { margin-left:auto }
+  .ico { width:16px; height:16px; flex:none; opacity:.7 } .nav-item:hover .ico, .nav-item[aria-current="true"] .ico { opacity:1 } .nav-item .nm { white-space:normal; line-height:1.25 } .nav-item .i { margin-left:auto } .nav-item { padding:8px 12px; gap:12px; font-size:14px; font-weight:500 }
   .filter { display:inline-flex; align-items:center; gap:4px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:0 4px 0 14px; height:36px; box-shadow:var(--shadow); color:var(--mute); font-weight:500; font-size:13.5px }
   .filter select { border:0; background:none; font-weight:600; color:var(--ink); padding:8px 8px 8px 2px; outline-offset:2px; cursor:pointer; font-size:13.5px }
   .side-foot { display:flex; align-items:center; gap:10px; padding:14px 18px; border-top:1px solid var(--line2) }
@@ -123,16 +123,16 @@
   .tab { display:flex; align-items:center; border:1px solid var(--line); background:var(--surface2); padding:7px 16px; border-radius:999px; color:var(--mute); font-weight:600; font-size:13px; white-space:nowrap }
   .tab:hover { color:var(--ink) } .tab[aria-selected="true"] { background:var(--accent); border-color:var(--accent); color:#fff }
   .tab .i { border-color:currentColor; color:inherit; opacity:.75 }
-  .card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; padding:12px 12px 0 }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); overflow:hidden }
   .scroller { overflow:auto; max-height:calc(100vh - 72px); min-height:140px }
   table { border-collapse:separate; border-spacing:0; width:100% }
-  th, td { padding:12px 16px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--line2) }
+  th, td { padding:14px 16px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--line2) }
+  th { padding-top:12px; padding-bottom:12px }
   th { position:sticky; top:0; z-index:2; background:var(--surface2); color:var(--mute); text-transform:uppercase; letter-spacing:.5px; font-size:12px; font-weight:600; border-bottom:1px solid var(--line); cursor:pointer; user-select:none; vertical-align:bottom }
   th:hover { color:var(--ink) } th small { display:block; color:var(--mute); font-weight:500; font-size:11px; text-transform:none; letter-spacing:0 }
   th .ar { opacity:.35; margin-left:4px } th.sorted .ar { opacity:1; color:var(--accent) }
   td.l, th.l { text-align:left }
-  th:first-child { border-radius:12px 0 0 12px } th:last-child { border-radius:0 12px 12px 0 }
-  td { font-size:15px; color:var(--ink2) }
+  td { font-size:14px; color:var(--ink) }
   td:first-child, th:first-child { position:sticky; left:0; background:var(--surface); z-index:1; font-weight:600; color:var(--accent) } th:first-child { z-index:3; background:var(--surface2); color:var(--mute); font-weight:600 }
   tbody tr:hover td { background:#FBF8EF } tr.team td { font-weight:700; background:var(--surface2); border-top:1px solid var(--line) }
   td.txt { white-space:normal; min-width:240px; max-width:420px; color:var(--ink2) }
@@ -140,7 +140,7 @@
   .pill { display:inline-block; min-width:42px; text-align:center; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600 }
   .pill.good { color:var(--good); background:var(--good-bg) } .pill.warn { color:var(--warn); background:var(--warn-bg) } .pill.bad { color:var(--bad); background:var(--bad-bg) } .pill.na { color:var(--na); background:var(--na-bg) }
   .dim { color:var(--mute) } a.open { color:var(--accent); text-decoration:none; font-weight:600 } a.open:hover { text-decoration:underline }
-  .foot { margin:0 -12px; padding:10px 16px; color:var(--mute); font-size:12.5px; border-top:1px solid var(--line2) }
+  .foot { padding:10px 16px; color:var(--mute); font-size:12.5px; border-top:1px solid var(--line2) }
   .empty { padding:48px 16px; text-align:center; color:var(--mute) } .empty b { display:block; color:var(--ink); font-size:15px; margin-bottom:4px }
 
   .dash { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; padding:4px 4px 16px }
@@ -175,7 +175,7 @@
 <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button><div class="scrim" id="scrim"></div>
 <div class="shell">
   <aside class="side">
-    <div class="brand">RISE Research<small>Sales portal</small></div>
+    <div class="brand">RISE Sales Portal</div>
     <nav class="rail" id="rail" aria-label="Views"></nav>
     <div class="side-foot"><div class="av">S</div><div><b>Sales team</b><small>Internal · RISE Research</small></div></div>
   </aside>
