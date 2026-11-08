@@ -91,7 +91,7 @@
   .dot { width:8px; height:8px; border-radius:50%; background:var(--good) } .dot.old { background:#d99a1c }
 
   /* ---------- KPI cards ---------- */
-  .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px }
+  .kpis[hidden] { display:none } .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px }
   .kpi { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow) }
   .kpi .l { display:flex; align-items:center; color:var(--mute); font-size:12px; font-weight:600; letter-spacing:.02em; text-transform:uppercase }
   .kpi .v { font-family:"Red Hat Display", Inter, sans-serif; font-size:28px; font-weight:700; letter-spacing:-.02em; margin:4px 0 2px; line-height:1.1 } .kpi .s { color:var(--mute); font-size:12.5px }
@@ -396,6 +396,7 @@ function render() {
   $('scopeTip').textContent = 'i';
   const when = f === t ? fmtLong(f) : f.startsWith('2000') ? 'All time' : `${fmtDate(f)} – ${fmtDate(t)}`;
   $('scopeSub').textContent = (S.rep || 'Global view') + ' · ' + when;
+  $('kpis').hidden = S.tab !== 'dashboard'; // the summary cards belong to the Dashboard view only
   renderKpis();
 
   const note = $('note'); note.hidden = true;
