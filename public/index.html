@@ -94,6 +94,8 @@
   .chipbtn:active, .help:active, .seg button:active { background:var(--accent-soft) }
   .kpi, .panel { transition:box-shadow .15s, transform .15s } .kpi:hover { box-shadow:0 4px 12px rgba(0,0,0,.10); transform:translateY(-1px) }
   @media (prefers-reduced-motion:reduce) { *, *::before, *::after { transition:none !important; animation-duration:.01ms !important } }
+  .right { display:flex; align-items:center; gap:10px; margin-left:auto; flex-wrap:wrap }
+  .card.bare { background:none; border:0; box-shadow:none; padding:0; overflow:visible } .card.bare .dash { padding:0 }
   .hint { margin:0 0 14px; color:var(--mute); font-size:12.5px }
   .avatar.all { background:var(--accent); color:#fff } .person .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
@@ -198,7 +200,10 @@
         <span class="i" tabindex="0" id="scopeTip" style="margin:0"></span>
         <button class="help" id="infoBtn">How it’s calculated</button>
       </div>
-      <div class="stamp"><span class="dot" id="dot"></span><span id="stampTxt">Loading…</span><span class="i" tabindex="0" data-tip="When the data was last pulled from HubSpot and Granola. It refreshes automatically; the dot turns amber if the data is more than a day old."></span></div>
+      <div class="right">
+        <div class="stamp"><span class="dot" id="dot"></span><span id="stampTxt">Loading…</span><span class="i" tabindex="0" data-tip="When the data was last pulled from HubSpot and Granola. It refreshes automatically; the dot turns amber if the data is more than a day old."></span></div>
+        <button class="chipbtn" id="refreshBtn">Refresh</button>
+      </div>
       <div class="pop" id="pop" role="dialog">
         <h5>How the numbers are calculated</h5>
         <ul>
@@ -212,7 +217,6 @@
     </div>
     <div class="toolbar" id="toolbar">
       <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search this table…" autocomplete="off"></label>
-      <button class="chipbtn" id="refreshBtn">Refresh</button>
     </div>
     <p class="hint" id="hint"></p>
     <section class="kpis" id="kpis"></section>
@@ -423,7 +427,8 @@ function render() {
   $('scopeTip').textContent = 'i';
   $('scopeSub').textContent = COPY[cur.id][0];
   $('hint').textContent = COPY[cur.id][1];
-  $('toolbar').querySelector('.search').style.display = S.tab === 'dashboard' ? 'none' : 'flex';
+  $('toolbar').style.display = S.tab === 'dashboard' ? 'none' : 'flex';
+  document.querySelector('.card').classList.toggle('bare', S.tab === 'dashboard');
   $('kpis').hidden = S.tab !== 'dashboard'; // the summary cards belong to the Dashboard view only
   renderKpis();
 
