@@ -420,7 +420,8 @@ function render() {
   $('rail').innerHTML = TABS.map((x) => `<button class="person nav-item" data-t="${x.id}" ${x.id === S.tab ? 'aria-current="true"' : ''}><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[x.id] || ''}</svg><span class="nm">${x.label}</span>${ic(x.tip).replace(' tabindex="0"', '')}</button>`).join('');
   $('rail').querySelectorAll('.nav-item').forEach((b) => (b.onclick = () => { S.tab = b.dataset.t; store.set('sp.tab', S.tab); document.body.classList.remove('nav'); render(); window.scrollTo(0, 0); }));
 
-  $('repSel').innerHTML = ['', ...D.reps].map((r) => `<option value="${esc(r)}" ${r === S.rep ? 'selected' : ''}>${r ? esc(r) : 'All (Global view)'}</option>`).join('');
+  const opt = (r, t) => `<option value="${esc(r)}" ${r === S.rep ? 'selected' : ''}>${esc(t)}</option>`;
+  $('repSel').innerHTML = opt('', 'All (Global view)') + `<optgroup label="Regions">${(D.groups || []).map((g) => opt(g, g)).join('')}</optgroup><optgroup label="People">${D.reps.map((r) => opt(r, r)).join('')}</optgroup>`;
   $('repSel').onchange = (e) => { S.rep = e.target.value; load(); };
 
   const cur = TABS.find((x) => x.id === S.tab) || TABS[0];
@@ -483,14 +484,15 @@ const num = (v) => { if (typeof v === 'number') return v; const x = parseFloat(S
 function table(id, rows) {
   const cols = Object.keys(rows[0]), s = S.sort[id];
   const q = (S.q || '').trim().toLowerCase();
-  let body = q ? rows.filter((r) => r['Team Member'] === 'Team' || cols.some((c) => String(r[c]).toLowerCase().includes(q))) : rows.slice(), team = null;
-  const ti = body.findIndex((r) => r['Team Member'] === 'Team'); if (ti >= 0) team = body.splice(ti, 1)[0];
+  const isTot = (r) => /^Team( |$)/.test(r['Team Member'] || '');
+  let body = q ? rows.filter((r) => isTot(r) || cols.some((c) => String(r[c]).toLowerCase().includes(q))) : rows.slice(), tot = body.filter(isTot);
+  body = body.filter((r) => !isTot(r));
   if (s) body.sort((a, b) => { const x = num(a[s.col]), y = num(b[s.col]); return (x != null && y != null ? x - y : String(a[s.col]).localeCompare(String(b[s.col]))) * s.dir; });
-  if (team) body.push(team);
+  body.push(...tot);
   const left = ['Attendees', 'Summary', 'Meeting', 'Granola Note', 'Owner', 'Person', 'Date'];
   const head = cols.map((c, i) => `<th data-c="${esc(c)}" class="${i === 0 || left.includes(c) ? 'l' : ''} ${s && s.col === c ? 'sorted' : ''}">${esc(c)}${ic(hint(c))}<span class="ar">${s && s.col === c ? (s.dir === 1 ? '↑' : '↓') : '↕'}</span>${TARGETS[c] != null ? `<small>target ${TARGETS[c]}${c === 'Average Call Duration' ? ' min' : '%'}+</small>` : ''}</th>`).join('');
-  if (q && !body.some((r) => r['Team Member'] !== 'Team')) return '<div class="empty"><b>No matches</b>Nothing in this table matches “' + esc(S.q) + '”.</div>';
-  return `<div class="scroller"><table><thead><tr>${head}</tr></thead><tbody>${body.map((r) => `<tr class="${r['Team Member'] === 'Team' ? 'team' : ''}">${cols.map((c) => cell(c, r[c])).join('')}</tr>`).join('')}</tbody></table></div>`;
+  if (q && !body.some((r) => !isTot(r))) return '<div class="empty"><b>No matches</b>Nothing in this table matches “' + esc(S.q) + '”.</div>';
+  return `<div class="scroller"><table><thead><tr>${head}</tr></thead><tbody>${body.map((r) => `<tr class="${isTot(r) ? 'team' : ''}">${cols.map((c) => cell(c, r[c])).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
 function dashboard() {
