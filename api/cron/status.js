@@ -11,6 +11,7 @@ module.exports = async (req, res) => {
   try {
     const sent = (await store.get('sent')) || {};
     json(res, 200, {
+      build: 'test-get-only',
       reportsEnabled: process.env.REPORTS_ENABLED === 'true',
       smtpConfigured: mailer.configured(),
       slackConfigured: slack.configured(), slackWeekly: process.env.SLACK_WEEKLY === 'true',
