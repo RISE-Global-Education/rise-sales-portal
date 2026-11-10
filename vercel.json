@@ -1,11 +1,24 @@
 {
   "functions": {
-    "api/cron/*.js": { "maxDuration": 300 },
-    "api/data.js": { "maxDuration": 30 }
+    "api/cron/*.js": {
+      "maxDuration": 300
+    },
+    "api/data.js": {
+      "maxDuration": 30
+    }
   },
   "crons": [
-    { "path": "/api/cron/refresh", "schedule": "0 * * * *" },
-    { "path": "/api/cron/daily",   "schedule": "30 4 * * *" },
-    { "path": "/api/cron/weekly",  "schedule": "0 5 * * 0" }
+    {
+      "path": "/api/cron/refresh",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/daily",
+      "schedule": "*/15 4-9 * * *"
+    },
+    {
+      "path": "/api/cron/weekly",
+      "schedule": "*/15 5-9 * * 0"
+    }
   ]
 }
