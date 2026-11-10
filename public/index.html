@@ -80,6 +80,16 @@
   .person:hover { background:var(--surface2); color:var(--ink) } .person[aria-current="true"] { background:var(--accent-soft); color:var(--accent); font-weight:600 }
   .avatar { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; font-size:11px; font-weight:700; color:#fff; flex:none }
   .ico { width:16px; height:16px; flex:none; opacity:.7 } .nav-item:hover .ico, .nav-item[aria-current="true"] .ico { opacity:1 } .nav-item .nm { white-space:normal; line-height:1.25 } .nav-item .i { margin-left:auto } .nav-item { padding:8px 12px; gap:12px; font-size:14px; font-weight:500 }
+  .ms { position:relative }
+  .msb { display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 12px 0 14px; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); color:var(--mute); font-weight:500; font-size:13.5px; white-space:nowrap }
+  .msb b { color:var(--ink); font-weight:600; max-width:170px; overflow:hidden; text-overflow:ellipsis } .msb:hover, .ms.open .msb { border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
+  .msb .car { font-size:10px; margin-left:2px }
+  .msp { display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:45; width:260px; max-height:360px; overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--pop); padding:6px }
+  .ms.open .msp { display:block }
+  .msp h6 { margin:8px 10px 4px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute); font-weight:600 }
+  .msp label { display:flex; align-items:center; gap:10px; padding:7px 10px; border-radius:8px; cursor:pointer; font-size:14px; color:var(--ink2) } .msp label:hover { background:var(--surface2) }
+  .msp input { accent-color:var(--accent); width:16px; height:16px; margin:0 } .msp .n { margin-left:auto; color:var(--mute); font-size:12px }
+  .msp .clr { display:block; width:100%; text-align:left; border:0; background:none; color:var(--accent); font-weight:600; padding:8px 10px; border-radius:8px } .msp .clr:hover { background:var(--accent-soft) }
   .filter { display:inline-flex; align-items:center; gap:4px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:0 4px 0 14px; height:36px; box-shadow:var(--shadow); color:var(--mute); font-weight:500; font-size:13.5px }
   .filter select { border:0; background:none; font-weight:600; color:var(--ink); padding:8px 8px 8px 2px; outline-offset:2px; cursor:pointer; font-size:13.5px }
   .side-foot { display:flex; align-items:center; gap:10px; padding:14px 18px; border-top:1px solid var(--line2) }
@@ -196,7 +206,8 @@
           </div>
           <div class="cal hide" id="cal" role="dialog" aria-label="Choose dates"></div>
         </div>
-        <label class="filter">Team member: <select id="repSel" aria-label="Team member"></select></label>
+        <div class="ms" id="repMs"></div>
+        <div class="ms" id="ctryMs"></div>
         <span class="i" tabindex="0" id="scopeTip" style="margin:0"></span>
         <button class="help" id="infoBtn">How it’s calculated</button>
       </div>
@@ -302,7 +313,7 @@ const initials = (n) => n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toU
 const color = (n) => COLORS[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 
-let S = { tab: TABS.some((t) => t.id === store.get('sp.tab')) ? store.get('sp.tab') : 'dashboard', rep: '', mode: 'day', day: shift(today, -1), from: today.slice(0, 8) + '01', to: today, view: shift(today, -1).slice(0, 7), pending: null, hover: null, D: null, sort: {} };
+let S = { tab: TABS.some((t) => t.id === store.get('sp.tab')) ? store.get('sp.tab') : 'dashboard', reps: [], countries: [], mode: 'day', day: shift(today, -1), from: today.slice(0, 8) + '01', to: today, view: shift(today, -1).slice(0, 7), pending: null, hover: null, D: null, sort: {} };
 const sel = () => (S.mode === 'day' ? [S.day, S.day] : [S.from, S.to]);
 
 // ---------- tooltip ----------
@@ -392,7 +403,7 @@ async function load(silent = false) {
   if (!silent) $('view').innerHTML = '<div class="spin">Loading…</div>';
   const [f, t] = sel();
   let resp;
-  try { resp = await fetch(`/api/data?from=${f}&to=${t}&rep=${encodeURIComponent(S.rep)}`); }
+  try { resp = await fetch(`/api/data?from=${f}&to=${t}&rep=${encodeURIComponent(S.reps.join('|'))}&country=${encodeURIComponent(S.countries.join('|'))}`); }
   catch { $('view').innerHTML = '<div class="empty"><b>Can’t reach the server</b>Check that it is running, then reload.</div>'; return; }
   if (resp.status === 401) return showLogin();
   const r = await resp.json();
@@ -410,6 +421,20 @@ function showLogin() {
 }
 
 // ---------- rendering ----------
+// ---------- multi-select filters ----------
+let reloadT; const reload = () => { clearTimeout(reloadT); reloadT = setTimeout(() => load(), 250); };
+function msRender(id, label, groups, sel, onChange, allText) {
+  const el = $(id), open = el.classList.contains('open'), keep = el.querySelector('.msp') ? el.querySelector('.msp').scrollTop : 0;
+  const txt = !sel.length ? allText : sel.length === 1 ? sel[0] : sel.length + ' selected';
+  el.innerHTML = `<button class="msb" aria-haspopup="true"><span>${label}:</span><b>${esc(txt)}</b><span class="car">▾</span></button><div class="msp">${sel.length ? '<button class="clr">Clear (show all)</button>' : ''}${groups.map((g) => (g.items.length ? (g.t ? `<h6>${g.t}</h6>` : '') + g.items.map((it) => `<label><input type="checkbox" value="${esc(it.v)}" ${sel.includes(it.v) ? 'checked' : ''}><span>${esc(it.t)}</span>${it.n ? `<span class="n">${it.n}</span>` : ''}</label>`).join('') : '')).join('')}</div>`;
+  el.classList.toggle('open', open); if (open) el.querySelector('.msp').scrollTop = keep;
+  el.querySelector('.msb').onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.ms.open').forEach((o) => o !== el && o.classList.remove('open')); el.classList.toggle('open'); };
+  el.querySelector('.msp').onclick = (e) => e.stopPropagation();
+  el.querySelectorAll('input[type=checkbox]').forEach((c) => (c.onchange = () => { const v = [...el.querySelectorAll('input:checked')].map((x) => x.value); onChange(v); msRender(id, label, groups, v, onChange, allText); }));
+  const clr = el.querySelector('.clr'); if (clr) clr.onclick = () => { onChange([]); msRender(id, label, groups, [], onChange, allText); };
+}
+document.addEventListener('click', () => document.querySelectorAll('.ms.open').forEach((o) => o.classList.remove('open')));
+
 function render() {
   const D = S.D, [f, t] = sel();
   $('stampTxt').textContent = 'Updated ' + new Date(D.updatedAt).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -420,13 +445,12 @@ function render() {
   $('rail').innerHTML = TABS.map((x) => `<button class="person nav-item" data-t="${x.id}" ${x.id === S.tab ? 'aria-current="true"' : ''}><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[x.id] || ''}</svg><span class="nm">${x.label}</span>${ic(x.tip).replace(' tabindex="0"', '')}</button>`).join('');
   $('rail').querySelectorAll('.nav-item').forEach((b) => (b.onclick = () => { S.tab = b.dataset.t; store.set('sp.tab', S.tab); document.body.classList.remove('nav'); render(); window.scrollTo(0, 0); }));
 
-  const opt = (r, t) => `<option value="${esc(r)}" ${r === S.rep ? 'selected' : ''}>${esc(t)}</option>`;
-  $('repSel').innerHTML = opt('', 'All (Global view)') + `<optgroup label="Regions">${(D.groups || []).map((g) => opt(g, g)).join('')}</optgroup><optgroup label="People">${D.reps.map((r) => opt(r, r)).join('')}</optgroup>`;
-  $('repSel').onchange = (e) => { S.rep = e.target.value; load(); };
+  msRender('repMs', 'Team member', [{ t: 'Regions', items: (D.groups || []).map((g) => ({ v: g, t: g })) }, { t: 'People', items: D.reps.map((r) => ({ v: r, t: r })) }], S.reps, (v) => { S.reps = v; reload(); }, 'All');
+  msRender('ctryMs', 'Lead country', [{ t: '', items: (D.countries || []).map((c) => ({ v: c.name, t: c.name, n: c.n.toLocaleString() })) }], S.countries, (v) => { S.countries = v; reload(); }, 'All');
 
   const cur = TABS.find((x) => x.id === S.tab) || TABS[0];
   $('scopeName').textContent = cur.label;
-  $('scopeTip').dataset.tip = S.rep ? `Showing only ${S.rep}’s numbers. Use the Team member filter to change it.` : 'Showing all reps combined. Use the Team member filter to see one person.';
+  $('scopeTip').dataset.tip = 'Filters apply to every view. Team member and Lead country both allow several choices; a person’s rows are listed separately in the tables. Overdue Tasks are not split by country.';
   $('scopeTip').textContent = 'i';
   $('scopeSub').textContent = COPY[cur.id][0];
   $('hint').textContent = COPY[cur.id][1];
@@ -448,7 +472,7 @@ function render() {
 }
 
 function renderKpis() {
-  const m = S.D.metrics.find((x) => x['Team Member'] === (S.rep || 'Team')) || S.D.metrics[S.D.metrics.length - 1];
+  const m = S.D.metrics.find((x) => x['Team Member'] === 'Team') || S.D.metrics[S.D.metrics.length - 1]; // 'Team' = everyone currently selected
   const n = (k) => (typeof m[k] === 'number' ? m[k].toLocaleString() : m[k]);
   const cards = [
     ['Closed Won', n('Closed Won'), `${n('Meetings Taken')} meetings taken`],
