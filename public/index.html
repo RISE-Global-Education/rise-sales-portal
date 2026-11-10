@@ -265,7 +265,9 @@ const HINTS = {
   // metrics
   'Closed Won': 'Deals that reached Closed Won in the selected dates.', 'Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent.',
   'Contacts': 'HubSpot contacts created in the selected dates and assigned to the rep.', 'Booked Call': 'Those contacts who booked a call through HubSpot’s meetings tool.',
-  'Lead-to-Meeting %': 'Contacts who booked a call ÷ contacts.', 'Close Rate (of meetings)': 'Closed Won ÷ meetings taken.', 'Close Rate (of contacts)': 'Closed Won ÷ contacts.',
+  'Lead-to-Meeting %': 'Contacts who booked a call ÷ contacts.',
+  'Meta Contacts': 'Contacts created in the selected dates whose HubSpot “partner” field contains “meta” (Meta ads instant forms).', 'Meta Booked Call': 'Meta contacts who booked a call through HubSpot’s meetings tool.', 'Meta Lead-to-Meeting %': 'Meta contacts who booked a call ÷ Meta contacts.',
+  'Other Contacts': 'Contacts created in the selected dates whose “partner” field does not contain “meta” (other partners, website, or empty).', 'Other Booked Call': 'Other-source contacts who booked a call.', 'Other Lead-to-Meeting %': 'Other-source contacts who booked a call ÷ other-source contacts.', 'Close Rate (of meetings)': 'Closed Won ÷ meetings taken.', 'Close Rate (of contacts)': 'Closed Won ÷ contacts.',
   'Post-Call Sent': 'Recorded calls where the post-call sequence was sent.', 'Post-Call Pending': 'Recorded calls where it hasn’t been sent yet.',
   'Portal Mentioned': 'Granola notes that mention the student portal.', 'Avg Duration (min)': 'Average Granola transcript length in minutes.',
 };
@@ -273,7 +275,7 @@ const hint = (c) => HINTS[c] || (c.startsWith('Moved to ') ? `Deals that entered
 const KPI_TIPS = {
   'Closed Won': 'Deals that reached the Sales Pipeline’s Closed Won stage with a close date in the selected dates.',
   'Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent through HubSpot.',
-  'New Contacts': 'HubSpot contacts created in the selected dates.', 'Lead → Meeting': 'Share of those new contacts who booked a call.',
+  'New Contacts': 'HubSpot contacts created in the selected dates.', 'Meta Contacts': 'Contacts whose HubSpot “partner” field contains “meta” (Meta ads instant forms).', 'Meta Lead → Meeting': 'Share of Meta contacts who booked a call.', 'Other Contacts': 'Contacts whose “partner” field does not contain “meta”.', 'Other Lead → Meeting': 'Share of other-source contacts who booked a call.', 'Lead → Meeting': 'Share of those new contacts who booked a call.',
   'Close Rate': 'Closed Won deals ÷ meetings taken (the second figure is Closed Won ÷ new contacts).',
   'Post-Call Pending': 'Recorded calls where the post-call sequence hasn’t been sent yet.',
   'Overdue Tasks': 'Tasks that are overdue right now: not completed and past their due time in HubSpot. Not affected by the selected dates.',
@@ -452,6 +454,10 @@ function renderKpis() {
     ['Meetings Taken', n('Meetings Taken'), `${m['Post-Call Sent'] + m['Post-Call Pending']} recorded on Granola`],
     ['New Contacts', n('Contacts'), `${n('Booked Call')} booked a call`],
     ['Lead → Meeting', n('Lead-to-Meeting %'), `${n('Booked Call')} booked / ${n('Contacts')} contacts`],
+    ['Meta Contacts', n('Meta Contacts'), `${n('Meta Booked Call')} booked a call`],
+    ['Meta Lead → Meeting', n('Meta Lead-to-Meeting %'), `${n('Meta Booked Call')} booked / ${n('Meta Contacts')} Meta contacts`],
+    ['Other Contacts', n('Other Contacts'), `${n('Other Booked Call')} booked a call`],
+    ['Other Lead → Meeting', n('Other Lead-to-Meeting %'), `${n('Other Booked Call')} booked / ${n('Other Contacts')} other contacts`],
     ['Close Rate', n('Close Rate (of meetings)'), `of meetings · ${n('Close Rate (of contacts)')} of contacts`],
     ['Post-Call Pending', n('Post-Call Pending'), `${n('Post-Call Sent')} sent`],
     ['Overdue Tasks', n('Overdue Tasks'), 'overdue right now'],
