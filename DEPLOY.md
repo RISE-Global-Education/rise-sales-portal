@@ -45,3 +45,8 @@ Also add the environment variable `REFRESH_STALE_MS=600000` so each 15-minute ru
 - `maxDuration` is 300s for cron functions. If the deploy complains it exceeds your plan, lower it
   (e.g. 60) - the refresh is resumable, just call `/api/cron/refresh` more than once.
 - Local run still works: `node server.js` (uses ./data instead of Blob).
+
+## Slack (optional)
+Set `SLACK_WEBHOOK_URL` (a Slack Incoming Webhook for the channel) in Vercel → Environment Variables, then redeploy.
+The daily report is then also posted to that channel, once a day, right after the e-mail (its own once-a-day record, retried until it posts).
+Set `SLACK_WEEKLY=true` to post the weekly report there too.
