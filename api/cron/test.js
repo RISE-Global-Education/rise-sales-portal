@@ -16,7 +16,10 @@ module.exports = async (req, res) => {
     const m = report.daily(snap.data, undefined, { overdue: await service.liveOverdue(snap.data, true) });
     const out = { report: m.subject };
     if (only !== 'email') { if (slack.configured()) { try { await slack.post('[TEST] ' + m.subject, m.text); out.slack = 'posted'; } catch (e) { out.slack = 'failed: ' + e.message; } } else out.slack = 'not configured'; }
-    if (only !== 'slack') { if (mailer.configured()) { try { const i = await mailer.send(process.env.SMTP_USER, '[TEST] ' + m.subject, m.html, m.text); out.email = 'accepted by ' + i.accepted.join(', '); } catch (e) { out.email = 'failed: ' + e.message; } } else out.email = 'not configured'; }
+    if (only !== 'slack') { if (mailer.configured()) { try {
+      // ?to=all -> the report's real recipient list (still marked [TEST], and still no once-a-day record); default = SMTP_USER only
+      const r = new URL(req.url, 'http://x').searchParams.get('to') === 'all' ? await service.recipients('daily') : { to: process.env.SMTP_USER };
+      const i = await mailer.send(r.to, '[TEST] ' + m.subject, m.html, m.text, r.bcc); out.email = 'accepted by ' + i.accepted.length + ' recipients' + (r.bcc ? ' (' + r.to.split(',').length + ' visible + ' + r.bcc.split(',').length + ' hidden reps)' : ''); } catch (e) { out.email = 'failed: ' + e.message; } } else out.email = 'not configured'; }
     json(res, 200, out);
   } catch (e) { json(res, 500, { error: e.message }); }
 };
