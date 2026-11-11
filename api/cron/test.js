@@ -13,7 +13,8 @@ module.exports = async (req, res) => {
   const only = new URL(req.url, 'http://x').searchParams.get('only'); // 'slack' | 'email' | (both)
   try {
     const snap = await service.snapshot(true);
-    const m = report.daily(snap.data, undefined, { overdue: await service.liveOverdue(snap.data, true) });
+    const t = require('../../lib/tz').today(), y = require('../../lib/tz').addDays(t, -1);
+    const m = report.daily(snap.data, undefined, { overdue: await service.liveOverdue(snap.data, true), unclaimed: await service.liveUnclaimed(y, y) });
     const out = { report: m.subject };
     if (only !== 'email') { if (slack.configured()) { try { await slack.post('[TEST] ' + m.subject, m.text); out.slack = 'posted'; } catch (e) { out.slack = 'failed: ' + e.message; } } else out.slack = 'not configured'; }
     if (only !== 'slack') { if (mailer.configured()) { try {
