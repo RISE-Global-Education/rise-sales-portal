@@ -16,7 +16,7 @@ module.exports = async (req, res) => {
     const t = require('../../lib/tz').today(), y = require('../../lib/tz').addDays(t, -1);
     const m = report.daily(snap.data, undefined, { overdue: await service.liveOverdue(snap.data, true), unclaimed: await service.liveUnclaimed(y, y) });
     const out = { report: m.subject };
-    if (only !== 'email') { if (slack.configured()) { try { await slack.post('[TEST] ' + m.subject, m.text, Object.values(require('../../lib/config').SLACK_IDS)); out.slack = 'posted'; } catch (e) { out.slack = 'failed: ' + e.message; } } else out.slack = 'not configured'; }
+    if (only !== 'email') { if (slack.configured()) { try { out.slack = 'posted as ' + (await slack.post('[TEST] ' + m.subject, m.data, { tag: '' })) + ' (no @channel tag in tests)'; } catch (e) { out.slack = 'failed: ' + e.message; } } else out.slack = 'not configured'; }
     if (only !== 'slack') { if (mailer.configured()) { try {
       // ?to=all -> the report's real recipient list; ?to=<address on that list> -> just that person; default = SMTP_USER only. Always marked [TEST], no once-a-day record.
       const q = new URL(req.url, 'http://x').searchParams.get('to');
