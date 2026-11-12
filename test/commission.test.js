@@ -167,3 +167,20 @@ test('refresh order: oldest part first so a timed-out run resumes; base first wh
   // fresh parts are skipped
   assert.deepEqual(refreshOrder({ ...parts, base: now - 60e3, tasks: now - 60e3 }, now, 600e3), ['airtable', 'meetings', 'emails', 'granola', 'deals', 'leads']);
 });
+
+test('verified-wins dialog lists each counted deal with what it pays, adding up to the row', () => {
+  const deals = [], clients = [], notes = [];
+  const add = (id, owner, day, counselor = 'Direct') => { const e = id + '@x.com'; deals.push(deal(id, owner, e, day + 'T10:00:00Z')); clients.push(client('r' + id, e, '', day, counselor)); notes.push(note('n' + id, owner, e, day + 'T08:00:00Z')); };
+  add('a1', 2, '2026-10-02', 'Oncourse Global'); add('a2', 2, '2026-10-03', 'Direct');
+  for (let i = 0; i < 32; i++) add('p' + i, 4, '2026-10-' + String(1 + (i % 28)).padStart(2, '0'));
+  const c = run(hs({ deals, clients }), notes, '2026-10-01', '2026-10-31');
+  const arth = c.verified['2026-10|Arth Agarwal'];
+  assert.deepEqual(arth.map((w) => w.Pays), ['₹2,500 (Counsellor)', '₹5,000 (Direct)']);
+  const paula = c.verified['2026-10|Paula Jimenez'];
+  assert.equal(paula.length, 32);
+  assert.equal(paula[29].Pays, 'Student #30 of 32 this month: $0');
+  assert.equal(paula[30].Pays, 'Student #31 of 32 this month: $50');
+  const sum = paula.reduce((a, w) => a + Number(w.Pays.split('$')[1]), 0);
+  assert.equal(sum, c.commission.find((x) => x['Team Member'] === 'Paula Jimenez').Commission); // 2 x $50 = $100
+  assert.equal(c.verified['2026-10|Lucas Moreno'], undefined); // no verified wins -> no list
+});

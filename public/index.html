@@ -173,6 +173,8 @@
   .dlg .row { display:flex; gap:10px; justify-content:flex-end; margin-top:4px } .dlg .row button { padding:9px 18px; border-radius:999px; font-weight:600; border:1px solid var(--line); background:var(--surface2) } .dlg .row button.go { background:var(--accent); border-color:var(--accent); color:#fff } .dlg .row button.go.bad { background:var(--bad); border-color:var(--bad) }
   .dlg .err { color:var(--bad); font-size:13px; min-height:1em }
   .mini.eye { display:inline-flex; align-items:center; gap:6px; border-color:var(--warn); color:var(--warn); background:var(--warn-bg) } .mini.eye:hover { background:var(--warn); border-color:var(--warn); color:#fff } .mini.eye svg { width:14px; height:14px }
+  .mini.eye.ok { border-color:var(--good); color:var(--good); background:var(--good-bg) } .mini.eye.ok:hover { background:var(--good); border-color:var(--good); color:#fff }
+  .uv .pays { font-weight:600; color:var(--good) }
   dialog.dlg.wide { width:min(760px,94vw) } .dlg .body { display:flex; flex-direction:column; gap:12px; padding:20px 22px; max-height:80vh; overflow:auto }
   .uv { border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:6px }
   .uv .top { display:flex; align-items:center; gap:10px; flex-wrap:wrap } .uv .top b { font-size:15px } .uv .top .dim { font-size:12.5px }
@@ -312,11 +314,11 @@ const HINTS = {
   'Possible Call': 'No proof found, but the rep has a Granola call whose title names this client (e.g. they joined from another e-mail). Not counted: raise a discrepancy with it as proof.',
   'HubSpot': 'Opens the deal in HubSpot.', 'Discrepancy': 'Raise a discrepancy if this deal should count, or see the one already raised.',
   // commission
-  'Month': 'Calendar month (commission resets every month).', 'Verified Wins': 'Wins with both proofs (or an accepted discrepancy) whose Airtable Client Date is in this month.',
+  'Month': 'Calendar month (commission resets every month).', 'Verified Wins': 'Wins with both proofs (or an accepted discrepancy) whose Airtable Client Date is in this month. Click to see them and what each one pays.',
   'Counsellor': 'Verified wins that came through a counsellor.', 'Direct': 'Verified wins that came direct.',
-  'Commission': 'Commission for the month under the rep’s rule (see Rule).', 'Currency': 'Currency the rule pays in.',
+  'Commission': 'Commission for the month under the rep’s rule (shown when you open Verified Wins).', 'Currency': 'Currency the rule pays in.',
   'Unverified Wins': 'Closed Won deals closed this month that are not verified yet (missing proof). Not paid until fixed or accepted.',
-  'Open Discrepancies': 'Discrepancies still Open in Airtable (waiting for a manager).', 'Rule': 'The commission rule for this rep.',
+  'Open Discrepancies': 'Discrepancies still Open in Airtable (waiting for a manager).',
   // disputes
   'Raised': 'Date the discrepancy was raised.', 'Reason': 'Why the deal should count.', 'Proof': 'Link given as proof (recording, receipt …).', 'Raised By': 'Who raised it.',
   'Resolution': 'Who resolved it in Airtable, and their note.',
@@ -550,7 +552,8 @@ function cell(col, v, r = {}) {
     return `<td class="l"><button class="mini" data-raise="${esc(v)}">${ds.length ? 'Raise again' : 'Raise'}</button></td>`;
   }
   if (col === 'Unverified Wins' && typeof v === 'number' && v > 0) return `<td><button class="mini eye" data-unv="${esc(r.Month + '|' + r['Team Member'])}" aria-label="View the ${v} unverified wins">${EYE}${v}</button></td>`;
-  if (col === 'Details' || col === 'Rule' || col === 'Resolution' || col === 'Reason' || col === 'Client') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
+  if (col === 'Verified Wins' && typeof v === 'number' && v > 0) return `<td><button class="mini eye ok" data-ver="${esc(r.Month + '|' + r['Team Member'])}" aria-label="View the ${v} verified wins">${EYE}${v}</button></td>`;
+  if (col === 'Details' || col === 'Resolution' || col === 'Reason' || col === 'Client') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (col === 'Granola Note') return `<td class="l">${v ? `<a class="open" href="${esc(v)}" target="_blank" rel="noopener">Open ↗</a>` : '<span class="dim">—</span>'}</td>`;
   if (v === 'Yes' || v === 'No' || v === 'NA') return `<td><span class="pill ${v === 'Yes' ? 'good' : v === 'No' ? 'bad' : 'na'}">${v}</span></td>`;
   if (col === 'Attendees' || col === 'Summary' || col === 'Meeting') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
@@ -620,16 +623,21 @@ function raiseDlg(row) {
 }
 // every deal row the page knows (Closed Won Check + the lists behind "Unverified Wins"), for the Raise button
 const dealRow = (id) => (S.D.verify || []).concat(...Object.values(S.D.unverified || {})).find((w) => w.Discrepancy === id);
-function unverifiedDlg(key) {
-  const list = (S.D.unverified || {})[key] || [], [mo, rep] = key.split('|');
+// the deals behind a commission row's "Verified Wins" (ok = true) or "Unverified Wins" count
+function winsDlg(key, ok) {
+  const list = ((ok ? S.D.verified : S.D.unverified) || {})[key] || [], [mo, rep] = key.split('|');
+  const monthTxt = esc(noon(mo + '-01').toLocaleDateString(undefined, { month: 'long', year: 'numeric' })), n = `${list.length} ${list.length === 1 ? 'deal' : 'deals'}`;
   const d = $('dlg'); d.classList.add('wide');
   const link = (href, t) => (href ? `<a class="open" href="${esc(href)}" target="_blank" rel="noopener">${t} ↗</a>` : '');
   const disc = (w) => { const ds = (S.D.disputesRaw || []).filter((x) => x.dealId === w.Discrepancy); return ds.find((x) => x.status === 'open') ? '<span class="pill warn">Discrepancy open</span>' : ds.find((x) => x.status === 'accepted') ? '<span class="pill good">Accepted</span>' : `<button class="mini" data-raise="${esc(w.Discrepancy)}">${ds.length ? 'Raise again' : 'Raise discrepancy'}</button>`; };
-  d.innerHTML = `<div class="body"><h3>Unverified wins · ${esc(rep)}</h3><p class="sub">${esc(noon(mo + '-01').toLocaleDateString(undefined, { month: 'long', year: 'numeric' }))} · ${list.length} Closed Won ${list.length === 1 ? 'deal' : 'deals'} without full proof. Not paid until fixed or a manager accepts a discrepancy.</p>
-    ${list.map((w) => `<div class="uv"><div class="top"><b>${esc(w.Client || '(no name)')}</b><span class="pill bad">${esc(w.Status)}</span><span class="dim">Closed ${esc(fmtShort(w.Date))}</span></div>
+  d.innerHTML = `<div class="body"><h3>${ok ? 'Verified' : 'Unverified'} wins · ${esc(rep)}</h3><p class="sub">${ok
+      ? `${monthTxt} · ${n} counted for commission (Airtable Client Date in this month), in Client Date order.${S.D.rules && S.D.rules[rep] ? '<br>Rule: ' + esc(S.D.rules[rep]) : ''}`
+      : `${monthTxt} · ${n} closed this month without full proof. Not paid until fixed or a manager accepts a discrepancy in Airtable.`}</p>
+    ${list.map((w) => `<div class="uv"><div class="top"><b>${esc(w.Client || '(no name)')}</b><span class="pill ${ok ? 'good' : 'bad'}">${esc(w.Status)}</span><span class="dim">Closed ${esc(fmtShort(w.Date))}${w['Client Date'] ? ' · Client Date ' + esc(fmtShort(w['Client Date'])) : ''}</span></div>
+      ${ok ? `<div class="det pays">Pays ${esc(w.Pays)}</div>` : ''}
       <div class="det">Call proof: <b>${w['Call Proof']}</b>${w['Call Proof'] === 'Yes' ? ` · Transcript: <b>${w.Transcript}</b>` : ''} · Payment proof: <b>${w['Payment Proof']}</b>${w.Source !== '—' ? ' (' + esc(w.Source) + ')' : ''}</div>
       <div class="det">${esc(w.Details)}</div>
-      <div class="acts">${link(w.HubSpot, 'HubSpot deal')}${link(w['Granola Note'], 'Granola note')}${link(w['Possible Call'], 'Possible call')}${disc(w)}</div></div>`).join('')}
+      <div class="acts">${link(w.HubSpot, 'HubSpot deal')}${link(w['Granola Note'], 'Granola note')}${link(w['Possible Call'], 'Possible call')}${ok ? '' : disc(w)}</div></div>`).join('')}
     <div class="row"><button type="button" id="dClose">Close</button></div></div>`;
   $('dClose').onclick = () => d.close();
   d.showModal();
@@ -640,9 +648,10 @@ $('dlg').addEventListener('click', (e) => {
   if (r) { const row = dealRow(r.dataset.raise); $('dlg').close(); raiseDlg(row); }
 });
 $('view').addEventListener('click', (e) => {
-  const r = e.target.closest('[data-raise]'), u = e.target.closest('[data-unv]');
+  const r = e.target.closest('[data-raise]'), u = e.target.closest('[data-unv]'), v = e.target.closest('[data-ver]');
   if (r) raiseDlg(dealRow(r.dataset.raise));
-  if (u) unverifiedDlg(u.dataset.unv);
+  if (u) winsDlg(u.dataset.unv, false);
+  if (v) winsDlg(v.dataset.ver, true);
 });
 $('raiseBtn').onclick = () => raiseDlg(null);
 
