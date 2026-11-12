@@ -5,6 +5,9 @@
     },
     "api/data.js": {
       "maxDuration": 30
+    },
+    "api/disputes.js": {
+      "maxDuration": 30
     }
   },
   "crons": [

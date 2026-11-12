@@ -179,6 +179,23 @@
   .uv { border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:6px }
   .uv .top { display:flex; align-items:center; gap:10px; flex-wrap:wrap } .uv .top b { font-size:15px } .uv .top .dim { font-size:12.5px }
   .uv .det { color:var(--ink2); font-size:13px; line-height:1.45 } .uv .acts { display:flex; gap:12px; align-items:center; flex-wrap:wrap; font-size:13px }
+  .authwrap { min-height:100vh; display:grid; place-items:center; padding:24px 16px; background:var(--bg) }
+  .auth { width:min(400px,100%); background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:28px 26px; display:flex; flex-direction:column; gap:12px }
+  .auth h2 { margin:0; font-family:"Red Hat Display", Inter, sans-serif; font-size:24px } .auth .brandline { color:var(--accent); font:600 14px "Red Hat Display", Inter, sans-serif }
+  .auth label { display:flex; flex-direction:column; gap:5px; font-size:12.5px; font-weight:600; color:var(--ink2) }
+  .auth input { font:inherit; font-weight:400; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface) } .auth input:focus { outline:0; border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
+  .auth button { padding:11px; border:0; border-radius:999px; background:var(--accent); color:#fff; font-weight:600 } .auth button:disabled { opacity:.6 } .auth .err { color:var(--bad); font-size:13px; min-height:1em } .auth .dim { font-size:13px }
+  .side-foot .who { min-width:0; flex:1 } .side-foot .who b, .side-foot .who small { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .side-foot .links { display:flex; gap:10px; margin-top:4px } .side-foot .links button { border:0; background:none; padding:0; color:var(--accent); font-size:12px; font-weight:600 } .side-foot .links button:hover { text-decoration:underline }
+  .thread { display:flex; flex-direction:column; gap:10px } .msg { border:1px solid var(--line); border-radius:12px; padding:10px 12px; background:var(--surface) } .msg.mine { background:var(--accent-soft); border-color:transparent }
+  .msg .hd { display:flex; gap:8px; align-items:baseline; font-size:12.5px; color:var(--mute) } .msg .hd b { color:var(--ink); font-size:13.5px } .msg .tx { margin-top:4px; white-space:pre-wrap; font-size:13.5px; color:var(--ink2) }
+  .files { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px } .files a { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:var(--accent); font-weight:600; text-decoration:none; border:1px solid var(--line); border-radius:8px; padding:4px 8px; background:var(--surface) }
+  .files img { width:96px; height:72px; object-fit:cover; border-radius:6px; display:block } .files a.img { padding:3px }
+  .box { border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:8px } .box h4 { margin:0; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--mute) }
+  .box textarea, .box input[type=file] { font:inherit; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface) } .box textarea { min-height:70px; resize:vertical }
+  .box .btns { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap } .box .btns button { padding:8px 16px; border-radius:999px; font-weight:600; border:1px solid var(--line); background:var(--surface2) } .box .btns .go { background:var(--accent); border-color:var(--accent); color:#fff } .box .btns .no { background:var(--bad); border-color:var(--bad); color:#fff } .box .err { color:var(--bad); font-size:13px }
+  .bspin { display:inline-block; width:13px; height:13px; margin-right:7px; vertical-align:-2px; border-radius:50%; border:2px solid currentColor; border-right-color:transparent; animation:rot .7s linear infinite }
+  [aria-busy="true"] { cursor:progress }
   .menu-btn, .scrim { display:none }
   @media (max-width:900px) {
     .shell { grid-template-columns:1fr }
@@ -201,7 +218,7 @@
   <aside class="side">
     <div class="brand">RISE Sales Portal</div>
     <nav class="rail" id="rail" aria-label="Views"></nav>
-    <div class="side-foot"><div class="av">S</div><div><b>Sales team</b><small>Internal · RISE Research</small></div></div>
+    <div class="side-foot" id="sideFoot"><div class="av">S</div><div class="who"><b>Sales team</b><small>Internal · RISE Research</small></div></div>
   </aside>
   <main>
     <h1 class="page-title" id="scopeName">Global view</h1>
@@ -258,7 +275,7 @@ function setOffsets(){ const r=document.documentElement.style, t=document.queryS
 addEventListener("resize", setOffsets); addEventListener("load", setOffsets); new MutationObserver(setOffsets).observe(document.documentElement,{childList:true,subtree:true}); setOffsets();
 document.getElementById('menuBtn').onclick = () => { document.body.classList.toggle('nav'); document.getElementById('menuBtn').textContent = document.body.classList.contains('nav') ? '✕' : '☰'; };
 document.getElementById('scrim').onclick = () => { document.body.classList.remove('nav'); document.getElementById('menuBtn').textContent = '☰'; };
-const COPY = { dashboard: ['How well recorded meetings follow the process: Granola recording, 20+ minute calls and portal mentions.', 'Use the Team member filter and the date picker to change what you see.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Managers accept or reject each one in Airtable (Commission Discrepancies base, Status field); an accepted deal then counts.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
+const COPY = { dashboard: ['How well recorded meetings follow the process: Granola recording, 20+ minute calls and portal mentions.', 'Use the Team member filter and the date picker to change what you see.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Open one to read and reply in its conversation (with screenshots). Yash accepts or rejects it there; an accepted deal moves to Verified Wins.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', tip: 'Granola meeting compliance: how many calls were recorded, how many ran 20+ minutes, and how many mentioned the student portal.' },
   { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
@@ -268,7 +285,7 @@ const TABS = [
   { id: 'pipeline', label: 'Deal Pipeline', tip: 'Deals moving between Sales Pipeline stages in the selected dates, and how many deals are open in each stage right now.' },
   { id: 'verify', label: 'Closed Won Check', tip: 'Each Closed Won deal checked for proof of conversation (Granola) and proof of payment (Airtable Follow Up Status = Client).' },
   { id: 'commission', label: 'Commission Calculator', tip: 'Monthly commission per rep from verified wins only, using each rep’s commission rule.' },
-  { id: 'disputes', label: 'Discrepancies', tip: 'Discrepancies raised on the portal about the Closed Won check. Managers accept or reject them in Airtable.' },
+  { id: 'disputes', label: 'Discrepancies', tip: 'Discrepancies raised on the portal, each with a conversation between Yash and the rep. Yash accepts or rejects them.' },
 ];
 let TARGETS = {}; // loaded from the server (lib/config.js) with the data
 const HINTS = {
@@ -309,7 +326,7 @@ const HINTS = {
   'Payment Proof': 'Yes if the Airtable form-responses table (Student Pipeline) has this client with Follow Up Status = Client, matched on the student or parent e-mail. One Airtable client proves one deal only.',
   'HubSpot Closed': 'The deal’s Closed Won date in HubSpot (for reference; the commission views use the Airtable Client Date).',
   'Source': 'Airtable Counselor Source: Direct (linked to “Direct” or none) or Counsellor (any other counsellor).',
-  'Status': 'Verified = both proofs found. Accepted = a manager accepted a discrepancy in Airtable. Missing … = what was not found.',
+  'Status': 'Verified = both proofs found. Accepted = Yash accepted a discrepancy raised for it. Missing … = what was not found.',
   'Details': 'What was matched, or the e-mails that were checked when something is missing.',
   'Possible Call': 'No proof found, but the rep has a Granola call whose title names this client (e.g. they joined from another e-mail). Not counted: raise a discrepancy with it as proof.',
   'HubSpot': 'Opens the deal in HubSpot.', 'Discrepancy': 'Raise a discrepancy if this deal should count, or see the one already raised.',
@@ -318,10 +335,10 @@ const HINTS = {
   'Counsellor': 'Verified wins that came through a counsellor.', 'Direct': 'Verified wins that came direct.',
   'Commission': 'Commission for the month under the rep’s rule (shown when you open Verified Wins).', 'Currency': 'Currency the rule pays in.',
   'Unverified Wins': 'Closed Won deals dated this month (Airtable Client Date; HubSpot close date when there is no Airtable record) that are not verified yet. Not paid until fixed or accepted.',
-  'Open Discrepancies': 'Discrepancies still Open in Airtable (waiting for a manager).',
+  'Open Discrepancies': 'Discrepancies still open (waiting for Yash).',
   // disputes
   'Raised': 'Date the discrepancy was raised.', 'Reason': 'Why the deal should count.', 'Proof': 'Link given as proof (recording, receipt …).', 'Raised By': 'Who raised it.',
-  'Resolution': 'Who resolved it in Airtable, and their note.',
+  'Resolution': 'Who resolved it, and their note.', 'Comments': 'Messages in the discrepancy’s conversation.', 'Files': 'Screenshots and files attached to it and its comments.', 'Thread': 'Open the discrepancy: details, attachments and the conversation (and Accept / Reject for Yash).',
 };
 const hint = (c) => HINTS[c] || (c.startsWith('Moved to ') ? `Deals that entered the “${c.slice(9)}” stage in the selected dates (a new deal counts as entering its first stage).` : c.startsWith('Open now: ') ? `Deals currently sitting in the “${c.slice(10)}” stage, whatever the dates.` : '');
 const KPI_TIPS = {
@@ -354,7 +371,7 @@ const initials = (n) => n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toU
 const color = (n) => COLORS[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 
-let S = { tab: TABS.some((t) => t.id === store.get('sp.tab')) ? store.get('sp.tab') : 'dashboard', reps: [], countries: [], mode: 'day', day: shift(today, -1), from: today.slice(0, 8) + '01', to: today, view: shift(today, -1).slice(0, 7), pending: null, hover: null, D: null, sort: {} };
+let S = { tab: location.hash === '#disputes' ? 'disputes' : TABS.some((t) => t.id === store.get('sp.tab')) ? store.get('sp.tab') : 'dashboard', reps: [], countries: [], mode: 'day', day: shift(today, -1), from: today.slice(0, 8) + '01', to: today, view: shift(today, -1).slice(0, 7), pending: null, hover: null, D: null, sort: {} };
 const sel = () => (S.mode === 'day' ? [S.day, S.day] : [S.from, S.to]);
 
 // ---------- tooltip ----------
@@ -446,20 +463,33 @@ async function load(silent = false) {
   let resp;
   try { resp = await fetch(`/api/data?from=${f}&to=${t}&rep=${encodeURIComponent(S.reps.join('|'))}&country=${encodeURIComponent(S.countries.join('|'))}`); }
   catch { $('view').innerHTML = '<div class="empty"><b>Can’t reach the server</b>Check that it is running, then reload.</div>'; return; }
-  if (resp.status === 401) return showLogin();
+  if (resp.status === 401) return authScreen();
   const r = await resp.json();
   if (r.error) { $('view').innerHTML = `<div class="empty"><b>Something went wrong</b>${esc(r.error)}</div>`; return; }
   if (r.loading) { $('view').innerHTML = '<div class="empty"><b>Loading data from HubSpot and Granola</b>The first load takes a few minutes. This page will update by itself.</div>'; setTimeout(load, 10000); return; }
   S.D = r; TARGETS = r.targets || TARGETS; render();
 }
-function showLogin() {
-  document.querySelector('.shell').innerHTML = '<form class="card login" id="lf"><b style="font-size:18px">Sign in</b><span class="dim">Enter the portal password to continue.</span><input type="password" id="pw" placeholder="Password" autocomplete="current-password" autofocus><button>Sign in</button><span id="lerr" class="dim"></span></form>';
-  $('lf').onsubmit = async (e) => {
-    e.preventDefault();
-    const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: $('pw').value }) });
-    if (r.ok) location.reload(); else $('lerr').textContent = 'Wrong password, try again.';
+// ---------- sign in / first-login password change (the whole portal needs a login) ----------
+async function api(url, b) {
+  const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(b) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error || 'Something went wrong (' + r.status + ')'), { status: r.status });
+  return j;
+}
+function authScreen() {
+  document.body.innerHTML = `<div class="authwrap"><form class="auth" id="af" novalidate>
+    <div class="brandline">RISE Sales Portal</div><h2>Sign in</h2>
+    <span class="dim">Use your RISE e-mail and your password.</span>
+    <label>E-mail<input id="aEmail" type="email" autocomplete="username" required autofocus></label>
+    <label>Password<input id="aPw" type="password" autocomplete="current-password" required></label>
+    <div class="err" id="aErr" role="alert"></div><button id="aGo">Sign in</button></form></div>`;
+  $('af').onsubmit = async (e) => {
+    e.preventDefault(); $('aErr').textContent = ''; $('aGo').disabled = true;
+    try { await api('/api/auth', { action: 'login', email: $('aEmail').value, password: $('aPw').value }); location.reload(); }
+    catch (err) { $('aErr').textContent = err.message; $('aGo').disabled = false; }
   };
 }
+async function signOut() { await api('/api/auth', { action: 'logout' }).catch(() => {}); location.reload(); }
 
 // ---------- rendering ----------
 // ---------- multi-select filters ----------
@@ -497,6 +527,10 @@ function render() {
   $('hint').textContent = COPY[cur.id][1];
   $('toolbar').style.display = S.tab === 'dashboard' ? 'none' : 'flex';
   $('raiseBtn').classList.toggle('hide', S.tab !== 'disputes');
+  if (D.me) {
+    $('sideFoot').innerHTML = `<div class="av">${esc(initials(D.me.name))}</div><div class="who"><b>${esc(D.me.name)}</b><small>${esc(D.me.email)}${D.me.resolver ? ' · resolves discrepancies' : ''}</small><div class="links"><button id="outBtn">Sign out</button></div></div>`;
+    $('outBtn').onclick = signOut;
+  }
   document.querySelector('.card').classList.toggle('bare', S.tab === 'dashboard');
   $('kpis').hidden = S.tab !== 'dashboard'; // the summary cards belong to the Dashboard view only
   renderKpis();
@@ -546,11 +580,12 @@ function cell(col, v, r = {}) {
   if (col === 'HubSpot' || col === 'Proof' || col === 'Possible Call') return `<td class="l">${v ? `<a class="open" href="${esc(v)}" target="_blank" rel="noopener">Open ↗</a>` : '<span class="dim">—</span>'}</td>`;
   if (col === 'Discrepancy') {
     const ds = (S.D.disputesRaw || []).filter((d) => d.dealId === v), open = ds.find((d) => d.status === 'open'), acc = ds.find((d) => d.status === 'accepted');
-    if (open) return '<td class="l"><span class="pill warn">Open</span></td>';
-    if (acc) return '<td class="l"><span class="pill good">Accepted</span></td>';
+    if (open) return `<td class="l"><button class="mini" data-thread="${esc(open.id)}">Open · ${open.comments ? open.comments.length : 0} 💬</button></td>`;
+    if (acc) return `<td class="l"><button class="mini" data-thread="${esc(acc.id)}" style="border-color:var(--good);color:var(--good)">Accepted</button></td>`;
     if (r.Status === 'Verified') return '<td class="l dim">—</td>';
     return `<td class="l"><button class="mini" data-raise="${esc(v)}">${ds.length ? 'Raise again' : 'Raise'}</button></td>`;
   }
+  if (col === 'Thread') return `<td class="l"><button class="mini" data-thread="${esc(v)}">Open</button></td>`;
   if (col === 'Unverified Wins' && typeof v === 'number' && v > 0) return `<td><button class="mini eye" data-unv="${esc(r.Month + '|' + r['Team Member'])}" aria-label="View the ${v} unverified wins">${EYE}${v}</button></td>`;
   if (col === 'Verified Wins' && typeof v === 'number' && v > 0) return `<td><button class="mini eye ok" data-ver="${esc(r.Month + '|' + r['Team Member'])}" aria-label="View the ${v} verified wins">${EYE}${v}</button></td>`;
   if (col === 'Details' || col === 'Resolution' || col === 'Reason' || col === 'Client') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
@@ -573,7 +608,7 @@ function table(id, rows) {
   body = body.filter((r) => !isTot(r));
   if (s) body.sort((a, b) => { const x = num(a[s.col]), y = num(b[s.col]); return (x != null && y != null ? x - y : String(a[s.col]).localeCompare(String(b[s.col]))) * s.dir; });
   body.push(...tot);
-  const left = ['Attendees', 'Summary', 'Meeting', 'Granola Note', 'Possible Call', 'Owner', 'Person', 'Date', 'Client', 'HubSpot Closed', 'Source', 'Status', 'Details', 'HubSpot', 'Discrepancy', 'Month', 'Currency', 'Rule', 'Raised', 'Reason', 'Proof', 'Raised By', 'Resolution'];
+  const left = ['Attendees', 'Summary', 'Meeting', 'Granola Note', 'Possible Call', 'Owner', 'Person', 'Date', 'Client', 'HubSpot Closed', 'Source', 'Status', 'Details', 'HubSpot', 'Discrepancy', 'Month', 'Currency', 'Rule', 'Raised', 'Reason', 'Proof', 'Raised By', 'Resolution', 'Thread'];
   const head = cols.map((c, i) => `<th data-c="${esc(c)}" class="${i === 0 || left.includes(c) ? 'l' : ''} ${s && s.col === c ? 'sorted' : ''}">${esc(c)}${ic(hint(c))}<span class="ar">${s && s.col === c ? (s.dir === 1 ? '↑' : '↓') : '↕'}</span>${TARGETS[c] != null ? `<small>target ${TARGETS[c]}${c === 'Average Call Duration' ? ' min' : '%'}+</small>` : ''}</th>`).join('');
   if (q && !body.some((r) => !isTot(r))) return '<div class="empty"><b>No matches</b>Nothing in this table matches “' + esc(S.q) + '”.</div>';
   return `<div class="scroller"><table><thead><tr>${head}</tr></thead><tbody>${body.map((r) => `<tr class="${isTot(r) ? 'team' : ''}">${cols.map((c) => cell(c, r[c], r)).join('')}</tr>`).join('')}</tbody></table></div>`;
@@ -592,15 +627,24 @@ function dashboard() {
   </div>`;
 }
 
-// ---------- discrepancies: raise (anyone); managers accept / reject in Airtable ----------
+// ---------- discrepancies: raise (anyone); Yash accepts / rejects ----------
+// busy(button, 'Posting…'): spinner + text on the button and every control in the dialog locked; returns an undo function
+function busy(btn, label) {
+  const scope = btn.closest('dialog') || document, was = btn.innerHTML;
+  const ctl = [...scope.querySelectorAll('button, textarea, input, select')].filter((x) => !x.disabled);
+  ctl.forEach((x) => (x.disabled = true));
+  btn.innerHTML = `<span class="bspin" aria-hidden="true"></span>${label}`; btn.setAttribute('aria-busy', 'true');
+  return () => { ctl.forEach((x) => (x.disabled = false)); btn.innerHTML = was; btn.removeAttribute('aria-busy'); };
+}
 const REASONS = ['Call happened but was not detected', 'Client paid but payment was not detected', 'Deal belongs to another rep', 'Other'];
 function openDlg(html, onSubmit) {
   const d = $('dlg'); d.innerHTML = `<form method="dialog">${html}<div class="err" id="dErr"></div><div class="row"><button type="button" id="dCancel">Cancel</button><button class="go" id="dGo">Submit</button></div></form>`;
   $('dCancel').onclick = () => d.close();
   d.querySelector('form').onsubmit = async (e) => {
-    e.preventDefault(); $('dGo').disabled = true; $('dErr').textContent = '';
-    try { await onSubmit(new FormData(e.target)); d.close(); await load(true); }
-    catch (err) { $('dErr').textContent = err.message; } finally { $('dGo').disabled = false; }
+    e.preventDefault(); $('dErr').textContent = '';
+    const fd = new FormData(e.target), done = busy($('dGo'), 'Submitting…'); // read the form before its fields are locked
+    try { await onSubmit(fd); done(); d.close(); await load(true); }
+    catch (err) { done(); $('dErr').textContent = err.message; }
   };
   d.showModal();
 }
@@ -611,15 +655,65 @@ async function post(b) {
   return j;
 }
 const repOpts = (sel) => (S.D.reps || []).map((n) => `<option ${n === sel ? 'selected' : ''}>${esc(n)}</option>`).join('');
+// screenshots / files: images or PDF, at most 3 and 3 MB together (sent as base64 with the form)
+const FILE_ACCEPT = 'image/png,image/jpeg,image/gif,image/webp,application/pdf';
+async function readFiles(input) {
+  const list = [...((input && input.files) || [])];
+  if (list.length > 3) throw new Error('Attach at most 3 files.');
+  if (list.reduce((a, f) => a + f.size, 0) > 3 * 1024 * 1024) throw new Error('Attachments are too large: 3 MB in total at most.');
+  return Promise.all(list.map((f) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res({ name: f.name, type: f.type, data: String(r.result).split(',')[1] }); r.onerror = () => rej(new Error('Could not read ' + f.name)); r.readAsDataURL(f); })));
+}
 function raiseDlg(row) {
-  const who = store.get('sp.me') || (row && row['Team Member']) || '';
-  openDlg(`<h3>Raise a discrepancy</h3><p class="sub">${row ? `${esc(row.Client)} · ${esc(row['Team Member'])} · ${esc(row.Status)}` : 'For a Closed Won deal that is not listed, or any other commission issue.'}</p>
-    ${row ? '' : `<label>Client (name or e-mail)<input name="client" required maxlength="200"></label><label>Rep the deal belongs to<select name="rep">${repOpts(who)}</select></label>`}
+  const me = S.D.me || {};
+  openDlg(`<h3>Raise a discrepancy</h3><p class="sub">${row ? `${esc(row.Client)} · ${esc(row['Team Member'])} · ${esc(row.Status)}` : 'For a Closed Won deal that is not listed, or any other commission issue.'} · raised by ${esc(me.name || '')}</p>
+    ${row ? '' : `<label>Client (name or e-mail)<input name="client" required maxlength="200"></label><label>Rep the deal belongs to<select name="rep">${repOpts((S.D.reps || []).includes(me.name) ? me.name : '')}</select></label>`}
     <label>Reason<select name="reason">${REASONS.map((x) => `<option>${esc(x)}</option>`).join('')}</select></label>
     <label>Explanation<textarea name="details" required maxlength="2000" placeholder="e.g. The call was on Zoom with the father (dad@…); payment was made under the mother’s e-mail …"></textarea></label>
     <label>Proof link (optional)<input name="link" type="url" placeholder="https://…" value="${esc((row && row['Possible Call']) || '')}"></label>
-    <label>Your name<input name="raisedBy" required maxlength="80" list="repList" value="${esc(who)}"><datalist id="repList">${repOpts()}</datalist></label>`,
-  async (f) => { store.set('sp.me', f.get('raisedBy')); await post({ action: 'raise', dealId: row ? row.Discrepancy : null, dealLink: row ? row.HubSpot : '', client: row ? row.Client : f.get('client'), rep: row ? row['Team Member'] : f.get('rep'), reason: f.get('reason'), details: f.get('details'), link: f.get('link'), raisedBy: f.get('raisedBy') }); });
+    <label>Screenshots / files (optional: images or PDF, up to 3, 3 MB in total)<input name="files" id="rFiles" type="file" multiple accept="${FILE_ACCEPT}"></label>`,
+  async (f) => { await post({ action: 'raise', dealId: row ? row.Discrepancy : null, dealLink: row ? row.HubSpot : '', client: row ? row.Client : f.get('client'), rep: row ? row['Team Member'] : f.get('rep'), reason: f.get('reason'), details: f.get('details'), link: f.get('link'), files: await readFiles($('rFiles')) }); });
+}
+
+// ---------- a discrepancy's conversation: details, attachments, comments; Accept / Reject for Yash ----------
+const fmtWhen = (iso) => (iso ? new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '');
+const fileList = (a) => (a && a.length ? `<div class="files">${a.map((f) => f.url ? (/^image\//.test(f.type) ? `<a class="img" href="${esc(f.url)}" target="_blank" rel="noopener" title="${esc(f.name)}"><img src="${esc(f.thumb || f.url)}" alt="${esc(f.name)}"></a>` : `<a href="${esc(f.url)}" target="_blank" rel="noopener">📎 ${esc(f.name)}</a>`) : `<a>📎 ${esc(f.name)} (uploading…)</a>`).join('')}</div>` : '');
+function threadDlg(id) {
+  const t = (S.D.disputesRaw || []).find((x) => x.id === id);
+  if (!t) return;
+  const me = S.D.me || {}, open = t.status === 'open', linked = !!t.dealId;
+  const can = me.resolver || t.raisedByEmail === me.email || (t.rep && t.rep === me.name);
+  const pill = `<span class="pill ${open ? 'warn' : t.status === 'accepted' ? 'good' : 'bad'}">${open ? 'Open' : t.status === 'accepted' ? 'Accepted' : 'Rejected'}</span>`;
+  const d = $('dlg'); d.classList.add('wide');
+  d.innerHTML = `<div class="body"><h3>${esc(t.client || 'Discrepancy')} ${pill}</h3>
+    <p class="sub">Rep: ${esc(t.rep || '—')} · raised by ${esc(t.raisedBy)} on ${esc(fmtWhen(t.at))} · ${esc(t.reason)}${t.dealLink ? ` · <a class="open" href="${esc(t.dealLink)}" target="_blank" rel="noopener">HubSpot deal ↗</a>` : ''}</p>
+    <div class="thread">
+      <div class="msg ${t.raisedByEmail === me.email ? 'mine' : ''}"><div class="hd"><b>${esc(t.raisedBy)}</b><span>${esc(fmtWhen(t.at))}</span></div><div class="tx">${esc(t.details)}</div>${t.link ? `<div class="files"><a href="${esc(t.link)}" target="_blank" rel="noopener">🔗 Proof link</a></div>` : ''}${fileList(t.attachments)}</div>
+      ${(t.comments || []).map((c) => `<div class="msg ${c.authorEmail === me.email ? 'mine' : ''}"><div class="hd"><b>${esc(c.author)}</b><span>${esc(fmtWhen(c.at))}</span></div>${c.message ? `<div class="tx">${esc(c.message)}</div>` : ''}${fileList(c.attachments)}</div>`).join('')}
+      ${open ? '' : `<div class="msg"><div class="hd"><b>${esc(t.resolvedBy || 'Resolved')}</b><span>${esc(fmtWhen(t.resolvedAt))}</span></div><div class="tx"><b>${t.status === 'accepted' ? (linked ? 'Accepted: the deal now counts as a verified win.' : 'Accepted.') : (linked ? 'Rejected: the deal stays unverified.' : 'Rejected.')}</b>${t.note ? '\n' + esc(t.note) : ''}</div></div>`}
+    </div>
+    ${can ? `<div class="box"><h4>Add a comment</h4><textarea id="cMsg" maxlength="4000" placeholder="Write a reply…"></textarea>
+      <input id="cFiles" type="file" multiple accept="${FILE_ACCEPT}" aria-label="Attach screenshots or files (images or PDF, up to 3, 3 MB in total)">
+      <div class="err" id="cErr" role="alert"></div><div class="btns"><button class="go" id="cGo">Post comment</button></div></div>`
+    : '<p class="sub">Only Yash, the deal’s rep and the person who raised it can comment here.</p>'}
+    ${me.resolver && open ? `<div class="box"><h4>Resolve</h4><textarea id="rNote" maxlength="1000" placeholder="Note for the rep (optional)"></textarea>
+      ${linked ? '' : '<p class="sub">Not linked to a Closed Won deal (raised with “Raise a discrepancy”), so accepting or rejecting closes it without changing any commission. Fix the deal in HubSpot, or raise it again from the deal’s row, for it to count.</p>'}
+      <div class="err" id="rErr" role="alert"></div><div class="btns"><button class="no" id="rNo">Reject</button><button class="go" id="rYes">${linked ? 'Accept: count as verified' : 'Accept'}</button></div></div>` : ''}
+    <div class="row"><button type="button" id="dClose">Close</button></div></div>`;
+  $('dClose').onclick = () => d.close();
+  // post a comment / accept / reject: loader on the button until the conversation is reloaded with the result
+  const act = async (btn, label, errId, make) => {
+    $(errId).textContent = '';
+    const done = busy(btn, label);
+    try { await post({ id, ...(await make()) }); await load(true); threadDlg(id); } // re-renders the dialog (loader gone)
+    catch (e) { done(); $(errId).textContent = e.message; }
+  };
+  if (can) $('cGo').onclick = () => { const msg = $('cMsg').value, input = $('cFiles'); act($('cGo'), 'Posting…', 'cErr', async () => ({ action: 'comment', message: msg, files: await readFiles(input) })); };
+  if (me.resolver && open) {
+    $('rYes').onclick = () => { const note = $('rNote').value; act($('rYes'), 'Accepting…', 'rErr', async () => ({ action: 'resolve', decision: 'accepted', note })); };
+    $('rNo').onclick = () => { if (!confirm(linked ? 'Reject this discrepancy? The deal stays unverified.' : 'Reject this discrepancy?')) return; const note = $('rNote').value; act($('rNo'), 'Rejecting…', 'rErr', async () => ({ action: 'resolve', decision: 'rejected', note })); };
+  }
+  if (!d.open) d.showModal();
+  const th = d.querySelector('.thread'); if (th) th.lastElementChild.scrollIntoView({ block: 'nearest' });
 }
 // every deal row the page knows (Closed Won Check + the lists behind "Unverified Wins"), for the Raise button
 const dealRow = (id) => (S.D.verify || []).concat(...Object.values(S.D.unverified || {})).find((w) => w.Discrepancy === id);
@@ -629,10 +723,10 @@ function winsDlg(key, ok) {
   const monthTxt = esc(noon(mo + '-01').toLocaleDateString(undefined, { month: 'long', year: 'numeric' })), n = `${list.length} ${list.length === 1 ? 'deal' : 'deals'}`;
   const d = $('dlg'); d.classList.add('wide');
   const link = (href, t) => (href ? `<a class="open" href="${esc(href)}" target="_blank" rel="noopener">${t} ↗</a>` : '');
-  const disc = (w) => { const ds = (S.D.disputesRaw || []).filter((x) => x.dealId === w.Discrepancy); return ds.find((x) => x.status === 'open') ? '<span class="pill warn">Discrepancy open</span>' : ds.find((x) => x.status === 'accepted') ? '<span class="pill good">Accepted</span>' : `<button class="mini" data-raise="${esc(w.Discrepancy)}">${ds.length ? 'Raise again' : 'Raise discrepancy'}</button>`; };
+  const disc = (w) => { const ds = (S.D.disputesRaw || []).filter((x) => x.dealId === w.Discrepancy), o = ds.find((x) => x.status === 'open'), a = ds.find((x) => x.status === 'accepted'); return o ? `<button class="mini" data-thread="${esc(o.id)}">Discrepancy open · view conversation</button>` : a ? `<button class="mini" data-thread="${esc(a.id)}">Accepted · view</button>` : `<button class="mini" data-raise="${esc(w.Discrepancy)}">${ds.length ? 'Raise again' : 'Raise discrepancy'}</button>`; };
   d.innerHTML = `<div class="body"><h3>${ok ? 'Verified' : 'Unverified'} wins · ${esc(rep)}</h3><p class="sub">${ok
       ? `${monthTxt} · ${n} counted for commission (Airtable Client Date in this month), in Client Date order.${S.D.rules && S.D.rules[rep] ? '<br>Rule: ' + esc(S.D.rules[rep]) : ''}`
-      : `${monthTxt} · ${n} without full proof, dated this month (Airtable Client Date, or HubSpot close date when there is no Airtable record). Not paid until fixed or a manager accepts a discrepancy in Airtable.`}</p>
+      : `${monthTxt} · ${n} without full proof, dated this month (Airtable Client Date, or HubSpot close date when there is no Airtable record). Not paid until fixed or Yash accepts a discrepancy for it.`}</p>
     ${list.map((w) => `<div class="uv"><div class="top"><b>${esc(w.Client || '(no name)')}</b><span class="pill ${ok ? 'good' : 'bad'}">${esc(w.Status)}</span><span class="dim">${w['Payment Proof'] === 'Yes' ? 'Client Date ' + esc(fmtShort(w.Date)) : 'No Client Date'} · HubSpot closed ${esc(fmtShort(w['HubSpot Closed']))}</span></div>
       ${ok ? `<div class="det pays">Pays ${esc(w.Pays)}</div>` : ''}
       <div class="det">Call proof: <b>${w['Call Proof']}</b>${w['Call Proof'] === 'Yes' ? ` · Transcript: <b>${w.Transcript}</b>` : ''} · Payment proof: <b>${w['Payment Proof']}</b>${w.Source !== '—' ? ' (' + esc(w.Source) + ')' : ''}</div>
@@ -644,11 +738,13 @@ function winsDlg(key, ok) {
 }
 $('dlg').addEventListener('close', () => $('dlg').classList.remove('wide'));
 $('dlg').addEventListener('click', (e) => {
-  const r = e.target.closest('.body [data-raise]');
+  const r = e.target.closest('.body [data-raise]'), t = e.target.closest('.body [data-thread]');
   if (r) { const row = dealRow(r.dataset.raise); $('dlg').close(); raiseDlg(row); }
+  if (t) threadDlg(t.dataset.thread);
 });
 $('view').addEventListener('click', (e) => {
-  const r = e.target.closest('[data-raise]'), u = e.target.closest('[data-unv]'), v = e.target.closest('[data-ver]');
+  const r = e.target.closest('[data-raise]'), u = e.target.closest('[data-unv]'), v = e.target.closest('[data-ver]'), t = e.target.closest('[data-thread]');
+  if (t) threadDlg(t.dataset.thread);
   if (r) raiseDlg(dealRow(r.dataset.raise));
   if (u) winsDlg(u.dataset.unv, false);
   if (v) winsDlg(v.dataset.ver, true);

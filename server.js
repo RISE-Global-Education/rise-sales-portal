@@ -12,8 +12,6 @@ try {
 } catch {}
 
 const service = require('./lib/service');
-const { authorize, login } = require('./lib/auth');
-const { json, query, body } = require('./lib/http');
 
 let refreshing = false;
 async function refresh() {
@@ -29,12 +27,9 @@ setInterval(() => service.sendScheduled().then((r) => r.forEach(([k, v]) => v.se
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
-  if (url.pathname === '/api/login' && req.method === 'POST') return login(req, res, (await body(req)).password);
-  if (url.pathname === '/api/disputes') return require('./api/disputes')(req, res);
-  if (url.pathname === '/api/data') {
-    if (!authorize(req, res)) return;
-    try { return json(res, 200, await service.getData(query(req))); } catch (e) { return json(res, 500, { error: e.message }); }
-  }
+  // same handlers as the Vercel functions in api/
+  const api = { '/api/auth': './api/auth', '/api/data': './api/data', '/api/disputes': './api/disputes' }[url.pathname];
+  if (api) return require(api)(req, res);
   const p = path.join(__dirname, 'public', url.pathname === '/' ? 'index.html' : path.normalize(url.pathname));
   if (!p.startsWith(path.join(__dirname, 'public')) || !fs.existsSync(p)) { res.writeHead(404); return res.end('Not found'); }
   const types = { '.html': 'text/html', '.ttf': 'font/ttf', '.txt': 'text/plain', '.png': 'image/png', '.css': 'text/css', '.js': 'text/javascript' };

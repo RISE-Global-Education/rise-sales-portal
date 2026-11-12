@@ -7,8 +7,8 @@ Connect it to the project; Vercel adds `BLOB_READ_WRITE_TOKEN` automatically.
 ## 2. Environment variables (Project -> Settings -> Environment Variables)
 | Name | Value |
 |---|---|
-| `REQUIRE_LOGIN` | leave unset for an open portal (current setting); `true` turns the password page back on |
-| `PORTAL_PASSWORD` | the password used when `REQUIRE_LOGIN=true` |
+| `YASH_PASSWORD` | Yash's portal password (everyone else's password is their own e-mail). Logins = `USERS` in `lib/config.js` |
+| `SESSION_SECRET` | optional: signs the login cookies (derived from `CRON_SECRET` when unset). Changing it signs everyone out |
 | `CRON_SECRET` | any long random string (required; Vercel sends it to the cron endpoints) |
 | `HUBSPOT_TOKEN` | HubSpot private app token (rotate the one used in development) |
 | `GRANOLA_API_KEY` | Granola API key (rotate the one in the Apps Script) |
@@ -65,3 +65,12 @@ The weekly report is posted there too; set `SLACK_WEEKLY=false` to stop that.
   A mail failure is logged and does not undo the raise. The portal re-reads the table within ~20 seconds. Override with `DISPUTES_BASE` / `DISPUTES_TABLE`.
 - Optional overrides: `AIRTABLE_BASE`, `AIRTABLE_CLIENTS_TABLE`, `AIRTABLE_CLIENTS_VIEW` (use a view instead of the Follow Up Status filter), `AIRTABLE_COUNSELORS_TABLE`.
 - Tests: `npm test`.
+
+## Logins and discrepancy conversations
+- The whole portal needs a login. Users (e-mail = login ID) are listed in `USERS` in `lib/config.js`; add a line to add someone.
+  Each person's password is their own e-mail address; Yash's is `YASH_PASSWORD` (changing it signs him out). There is no
+  password change on the portal. `REQUIRE_LOGIN` / `PORTAL_PASSWORD` are no longer used.
+- Discrepancies: anyone signed in can raise one (with up to 3 screenshots/PDFs, 3 MB in total). Yash, the deal's rep and the person who
+  raised it can comment (also with attachments). Only `DISPUTE_RESOLVERS` (default yash@riseresearch.com) can Accept / Reject on the
+  portal; an accepted deal moves from Unverified to Verified Wins. Comments are in the Airtable table `Comments` (same base).
+- E-mails: raised -> `DISPUTE_NOTIFY_TO` (default Yash); each comment -> the other people in the conversation; resolved -> the rep and the raiser.
