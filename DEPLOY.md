@@ -60,6 +60,8 @@ The weekly report is posted there too; set `SLACK_WEEKLY=false` to stop that.
 - Rules per rep: `COMMISSION` in `lib/config.js`.
 - Discrepancies are stored in the Airtable base **Commission Discrepancies** (`appMn20DaFCQaMPig`, table `Discrepancies`).
   Reps raise them on the portal. Managers resolve them **only in Airtable** by changing **Status**
-  (Open / Accepted / Rejected); the portal has no accept / reject. The portal re-reads the table within ~20 seconds. Override with `DISPUTES_BASE` / `DISPUTES_TABLE`.
+  (Open / Accepted / Rejected); the portal has no accept / reject.
+- Every raised discrepancy is e-mailed to `DISPUTE_NOTIFY_TO` (comma-separated; default yash@riseresearch.com) via the same SMTP as the reports.
+  A mail failure is logged and does not undo the raise. The portal re-reads the table within ~20 seconds. Override with `DISPUTES_BASE` / `DISPUTES_TABLE`.
 - Optional overrides: `AIRTABLE_BASE`, `AIRTABLE_CLIENTS_TABLE`, `AIRTABLE_CLIENTS_VIEW` (use a view instead of the Follow Up Status filter), `AIRTABLE_COUNSELORS_TABLE`.
 - Tests: `npm test`.
