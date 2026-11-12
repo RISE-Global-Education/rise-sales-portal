@@ -184,3 +184,21 @@ test('verified-wins dialog lists each counted deal with what it pays, adding up 
   assert.equal(sum, c.commission.find((x) => x['Team Member'] === 'Paula Jimenez').Commission); // 2 x $50 = $100
   assert.equal(c.verified['2026-10|Lucas Moreno'], undefined); // no verified wins -> no list
 });
+
+test('commission views date every deal by the Airtable Client Date (HubSpot close date only when there is no Airtable record)', () => {
+  // closed in HubSpot on 31 Oct, Client Date 2 Nov, no call -> unverified in NOVEMBER, listed in the Closed Won Check for November
+  const h = hs({
+    deals: [deal('A', 2, 'a@x.com', '2026-10-31T10:00:00Z'), deal('B', 2, 'b@x.com', '2026-10-30T10:00:00Z')],
+    clients: [client('r1', 'a@x.com', '', '2026-11-02')], // B has no Airtable record -> dated by its close date (30 Oct)
+  });
+  const c = run(h, [], '2026-10-01', '2026-11-30');
+  const row = (mo) => c.commission.find((x) => x['Team Member'] === 'Arth Agarwal' && x.Month === mo);
+  assert.equal(row('2026-11')['Unverified Wins'], 1);
+  assert.equal(row('2026-10')['Unverified Wins'], 1);
+  assert.deepEqual(c.unverified['2026-11|Arth Agarwal'].map((w) => w.Client), ['Client A']);
+  const nov = run(h, [], '2026-11-01', '2026-11-30').verify;
+  assert.deepEqual(nov.map((w) => [w.Client, w.Date, w['HubSpot Closed']]), [['Client A', '2026-11-02', '2026-10-31']]);
+  const oct = run(h, [], '2026-10-01', '2026-10-31').verify;
+  assert.deepEqual(oct.map((w) => w.Client), ['Client B']);
+  assert.match(oct[0].Details, /dated by the HubSpot close date/);
+});

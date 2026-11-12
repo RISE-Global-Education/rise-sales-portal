@@ -22,6 +22,8 @@ module.exports = async (req, res) => {
       weeklyRecipients: (process.env.WEEKLY_TO || process.env.DAILY_TO || '').split(',').filter(Boolean).length,
       today: today(), lastSent: sent, dataAgeMin,
       airtableConfigured: !!(process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN || process.env.AIRTABLE_TOKEN),
+      // saved Granola notes, and how many already carry attendee/invitee e-mails (needed for the commission call proof)
+      granolaNotes: await store.get('granola-cache').then((c) => { const v = Object.values(c || {}); return { total: v.length, withEmails: v.filter((g) => Array.isArray(g.emails)).length, withClientEmail: v.filter((g) => (g.emails || []).some((e) => !/@riseresearch\.com$/i.test(e))).length }; }),
     });
   } catch (e) { json(res, 500, { error: e.message }); }
 };
