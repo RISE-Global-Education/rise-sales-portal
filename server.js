@@ -30,6 +30,7 @@ setInterval(() => service.sendScheduled().then((r) => r.forEach(([k, v]) => v.se
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/api/login' && req.method === 'POST') return login(req, res, (await body(req)).password);
+  if (url.pathname === '/api/disputes') return require('./api/disputes')(req, res);
   if (url.pathname === '/api/data') {
     if (!authorize(req, res)) return;
     try { return json(res, 200, await service.getData(query(req))); } catch (e) { return json(res, 500, { error: e.message }); }
