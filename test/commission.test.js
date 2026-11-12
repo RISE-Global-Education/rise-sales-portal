@@ -202,3 +202,35 @@ test('commission views date every deal by the Airtable Client Date (HubSpot clos
   assert.deepEqual(oct.map((w) => w.Client), ['Client B']);
   assert.match(oct[0].Details, /dated by the HubSpot close date/);
 });
+
+test('the portal receives no payout data: no Commission / Currency, no Team totals, no Pays, no rules', () => {
+  const { withoutPay } = require('../lib/service');
+  const deals = [], clients = [], notes = [];
+  for (const [i, owner] of [[0, 2], [1, 3], [2, 4]]) { // Arth, Ramya, Paula
+    const e = 'w' + i + '@x.com'; deals.push(deal('w' + i, owner, e, '2026-10-05T10:00:00Z')); clients.push(client('r' + i, e, '', '2026-10-05')); notes.push(note('n' + i, owner, e, '2026-10-01T10:00:00Z'));
+  }
+  const full = run(hs({ deals, clients }), notes, '2026-10-01', '2026-10-31');
+  assert.ok(full.commission.some((r) => r.Commission > 0) && full.rules); // still calculated...
+  const sent = withoutPay(full);
+  const json = JSON.stringify({ commission: sent.commission, verified: sent.verified, rules: sent.rules });
+  assert.doesNotMatch(json, /"Commission"|"Currency"|"Pays"|Team \(|₹|\$\d/);  // ...but never sent to the browser
+  assert.equal(sent.rules, undefined);
+  assert.deepEqual(sent.commission.map((r) => r['Team Member']).filter((n) => n.startsWith('Team')), []);
+  assert.equal(sent.verified['2026-10|Arth Agarwal'].length, 1); // the deal lists themselves stay
+});
+
+test('Commission Calculator counts only the selected day / range (payout, never shown, stays monthly)', () => {
+  const deals = [], clients = [], notes = [];
+  const add = (id, day, counselor, call = true) => { const e = id + '@x.com'; deals.push(deal(id, 2, e, day + 'T10:00:00Z')); clients.push(client('r' + id, e, '', day, counselor)); if (call) notes.push(note('n' + id, 2, e, day + 'T06:00:00Z')); };
+  add('a', '2026-11-03', 'Direct'); add('b', '2026-11-11', 'Oncourse'); add('c', '2026-11-11', 'Direct'); add('d', '2026-11-11', 'Direct', false); add('e', '2026-11-20', 'Direct');
+  const h = hs({ deals, clients });
+  const row = (from, to) => run(h, notes, from, to).commission.find((x) => x['Team Member'] === 'Arth Agarwal');
+  const day = row('2026-11-11', '2026-11-11');
+  assert.deepEqual([day['Verified Wins'], day['Unverified Wins'], day.Counsellor, day.Direct], [2, 1, 1, 1]);
+  assert.equal(day['Meetings Taken'], 2); // b's and c's recorded calls on 11 Nov (a's on 3 Nov and e's on 20 Nov are outside the day)
+  const month = row('2026-11-01', '2026-11-30');
+  assert.deepEqual([month['Verified Wins'], month['Unverified Wins']], [4, 1]);
+  assert.equal(day.Commission, month.Commission); // internal payout is for the whole month either way
+  const c = run(h, notes, '2026-11-11', '2026-11-11');
+  assert.deepEqual(c.verified['2026-11|Arth Agarwal'].map((w) => w.Client).sort(), ['Client b', 'Client c']);
+});

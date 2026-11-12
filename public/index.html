@@ -333,7 +333,7 @@ const HINTS = {
   // commission
   'Month': 'Calendar month (commission resets every month).', 'Verified Wins': 'Wins with both proofs (or an accepted discrepancy) whose Airtable Client Date is in this month. Click to see them and what each one pays.',
   'Counsellor': 'Verified wins that came through a counsellor.', 'Direct': 'Verified wins that came direct.',
-  'Commission': 'Commission for the month under the rep’s rule (shown when you open Verified Wins).', 'Currency': 'Currency the rule pays in.',
+ 
   'Unverified Wins': 'Closed Won deals dated this month (Airtable Client Date; HubSpot close date when there is no Airtable record) that are not verified yet. Not paid until fixed or accepted.',
   'Open Discrepancies': 'Discrepancies still open (waiting for Yash).',
   // disputes
@@ -571,12 +571,10 @@ function renderKpis() {
 function chipClass(col, v) { const t = TARGETS[col]; if (t == null) return null; const x = parseFloat(v); if (isNaN(x)) return 'na'; return x >= t ? 'good' : x >= t * 0.7 ? 'warn' : 'bad'; }
 const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const STATUS = (v) => (v === 'Verified' || v === 'Accepted' || v === 'Accepted (discrepancy)' ? 'good' : v === 'Open' ? 'warn' : 'bad');
-const money = (v, cur) => (cur === 'INR' ? '₹' + Number(v).toLocaleString('en-IN') : cur === 'USD' ? '$' + Number(v).toLocaleString('en-US') : String(v));
 function cell(col, v, r = {}) {
   if (col === 'Date' || col === 'Raised' || col === 'HubSpot Closed') return `<td class="l">${v ? esc(fmtDate(v)) : '<span class="dim">—</span>'}</td>`;
   if (col === 'Month') return `<td class="l">${v ? esc(noon(v + '-01').toLocaleDateString(undefined, { month: 'short', year: 'numeric' })) : ''}</td>`;
   if (col === 'Status') return `<td class="l"><span class="pill ${STATUS(v)}">${esc(v)}</span></td>`;
-  if (col === 'Commission') return `<td><b>${v === '' ? '' : esc(money(v, r.Currency))}</b></td>`;
   if (col === 'HubSpot' || col === 'Proof' || col === 'Possible Call') return `<td class="l">${v ? `<a class="open" href="${esc(v)}" target="_blank" rel="noopener">Open ↗</a>` : '<span class="dim">—</span>'}</td>`;
   if (col === 'Discrepancy') {
     const ds = (S.D.disputesRaw || []).filter((d) => d.dealId === v), open = ds.find((d) => d.status === 'open'), acc = ds.find((d) => d.status === 'accepted');
@@ -725,10 +723,9 @@ function winsDlg(key, ok) {
   const link = (href, t) => (href ? `<a class="open" href="${esc(href)}" target="_blank" rel="noopener">${t} ↗</a>` : '');
   const disc = (w) => { const ds = (S.D.disputesRaw || []).filter((x) => x.dealId === w.Discrepancy), o = ds.find((x) => x.status === 'open'), a = ds.find((x) => x.status === 'accepted'); return o ? `<button class="mini" data-thread="${esc(o.id)}">Discrepancy open · view conversation</button>` : a ? `<button class="mini" data-thread="${esc(a.id)}">Accepted · view</button>` : `<button class="mini" data-raise="${esc(w.Discrepancy)}">${ds.length ? 'Raise again' : 'Raise discrepancy'}</button>`; };
   d.innerHTML = `<div class="body"><h3>${ok ? 'Verified' : 'Unverified'} wins · ${esc(rep)}</h3><p class="sub">${ok
-      ? `${monthTxt} · ${n} counted for commission (Airtable Client Date in this month), in Client Date order.${S.D.rules && S.D.rules[rep] ? '<br>Rule: ' + esc(S.D.rules[rep]) : ''}`
+      ? `${monthTxt} · ${n} counted for commission (Airtable Client Date in this month), in Client Date order.`
       : `${monthTxt} · ${n} without full proof, dated this month (Airtable Client Date, or HubSpot close date when there is no Airtable record). Not paid until fixed or Yash accepts a discrepancy for it.`}</p>
     ${list.map((w) => `<div class="uv"><div class="top"><b>${esc(w.Client || '(no name)')}</b><span class="pill ${ok ? 'good' : 'bad'}">${esc(w.Status)}</span><span class="dim">${w['Payment Proof'] === 'Yes' ? 'Client Date ' + esc(fmtShort(w.Date)) : 'No Client Date'} · HubSpot closed ${esc(fmtShort(w['HubSpot Closed']))}</span></div>
-      ${ok ? `<div class="det pays">Pays ${esc(w.Pays)}</div>` : ''}
       <div class="det">Call proof: <b>${w['Call Proof']}</b>${w['Call Proof'] === 'Yes' ? ` · Transcript: <b>${w.Transcript}</b>` : ''} · Payment proof: <b>${w['Payment Proof']}</b>${w.Source !== '—' ? ' (' + esc(w.Source) + ')' : ''}</div>
       <div class="det">${esc(w.Details)}</div>
       <div class="acts">${link(w.HubSpot, 'HubSpot deal')}${link(w['Granola Note'], 'Granola note')}${link(w['Possible Call'], 'Possible call')}${ok ? '' : disc(w)}</div></div>`).join('')}
