@@ -56,6 +56,18 @@
   .ckitem .top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap } .ckitem .who { display:flex; flex-wrap:wrap; gap:6px }
   .ckitem .sum { margin:0; white-space:pre-wrap; color:var(--ink2); overflow-wrap:anywhere }
   .ckitem .acts { display:flex; gap:8px; justify-content:flex-end }
+  /* ---------- Feedback ---------- */
+  .ckform select { font:inherit; font-weight:400; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface); max-width:320px }
+  .fbbar { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:6px 2px 0 } .fbbar h4 { margin:0; font:600 15px/1.3 "Red Hat Display", Inter, sans-serif }
+  .fbbar select { font:inherit; padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:var(--surface) }
+  .fbmeta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:var(--mute); font-size:13px } .fbmeta b { color:var(--ink) }
+  .fbc { display:flex; flex-direction:column; gap:10px; border-top:1px solid var(--line2); padding-top:12px }
+  .fbc .c { background:var(--bg); border:1px solid var(--line2); border-radius:12px; padding:10px 12px } .fbc .c.mine { background:var(--accent-soft); border-color:transparent }
+  .fbc .c .h { display:flex; gap:8px; align-items:baseline; font-size:13px } .fbc .c .h small { color:var(--mute) } .fbc .c p { margin:4px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--ink2) }
+  .fbc .reply { display:flex; gap:8px; align-items:flex-end } .fbc .reply textarea { flex:1; font:inherit; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface); min-height:44px; resize:vertical }
+  .fbc .reply textarea:focus { outline:0; border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
+  .fbc .reply button { padding:9px 18px; border-radius:999px; font-weight:600; border:1px solid var(--accent); background:var(--accent); color:#fff }
+  .fbc .err { color:var(--bad); font-size:13px }
   .ckhead { display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:6px 2px 0 } .ckhead h4 { margin:0; font:600 15px/1.3 "Red Hat Display", Inter, sans-serif } .ckhead span { color:var(--mute); font-size:13px }
 
   /* ---------- controls (LMS-style chips) ---------- */
@@ -313,7 +325,7 @@ function setOffsets(){ const r=document.documentElement.style, t=document.queryS
 addEventListener("resize", setOffsets); addEventListener("load", setOffsets); new MutationObserver(setOffsets).observe(document.documentElement,{childList:true,subtree:true}); setOffsets();
 document.getElementById('menuBtn').onclick = () => { document.body.classList.toggle('nav'); document.getElementById('menuBtn').textContent = document.body.classList.contains('nav') ? '✕' : '☰'; };
 document.getElementById('scrim').onclick = () => { document.body.classList.remove('nav'); document.getElementById('menuBtn').textContent = '☰'; };
-const COPY = { dashboard: ['Results, lead conversion, follow-up and call quality for the selected dates at a glance.', 'Use the Team member filter and the date picker to change what you see. Hover any (i) for how a number is calculated.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], checkin: ['Daily check-ins with the sales team: who joined, the Granola recording and a summary. Arth and Guillermo add and edit them; everyone else can view.', 'Pick one day to see (or, for Arth and Guillermo, add) that day’s check-ins. Pick a date range to see the history.'], spam: ['Daily spam check of each team member’s e-mail and phone. Guillermo ticks the boxes; everyone else can view.', 'Pick one day to see (or, for Guillermo, tick) that day’s checks. Pick a date range to see the history.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Open one to read and reply in its conversation (with screenshots). Yash accepts or rejects it there; an accepted deal moves to Verified Wins.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
+const COPY = { dashboard: ['Results, lead conversion, follow-up and call quality for the selected dates at a glance.', 'Use the Team member filter and the date picker to change what you see. Hover any (i) for how a number is calculated.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], feedback: ['Feedback from Yash and Shreyans to each sales person, with comments. A sales person sees only the feedback written to them.', 'Feedback is not filtered by the dates: everything is listed, newest first.'], checkin: ['Daily check-ins with the sales team: who joined, the Granola recording and a summary. Arth and Guillermo add and edit them; everyone else can view.', 'Pick one day to see (or, for Arth and Guillermo, add) that day’s check-ins. Pick a date range to see the history.'], spam: ['Daily spam check of each team member’s e-mail and phone. Guillermo ticks the boxes; everyone else can view.', 'Pick one day to see (or, for Guillermo, tick) that day’s checks. Pick a date range to see the history.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Open one to read and reply in its conversation (with screenshots). Yash accepts or rejects it there; an accepted deal moves to Verified Wins.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', tip: 'The overview: deals closed, meetings and close rate; new leads who booked a call (by source); follow-ups still pending; and Granola call quality (length and portal mentions).' },
   { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
@@ -323,6 +335,7 @@ const TABS = [
   { id: 'pipeline', label: 'Deal Pipeline', tip: 'Deals moving between Sales Pipeline stages in the selected dates, and how many deals are open in each stage right now.' },
   { id: 'verify', label: 'Closed Won Check', tip: 'Each Closed Won deal checked for proof of conversation (Granola) and proof of payment (Airtable Follow Up Status = Client).' },
   { id: 'commission', label: 'Commission Calculator', tip: 'Monthly commission per rep from verified wins only, using each rep’s commission rule.' },
+  { id: 'feedback', label: 'Feedback', tip: 'Feedback from Yash and Shreyans to a sales person, with a comment thread. Each sales person sees only their own feedback; Yash and Shreyans see all of it.' },
   { id: 'checkin', label: 'Daily Checkin', tip: 'Daily check-ins with the sales team: which sales people joined, the Granola link and a summary. Only Arth and Guillermo can add or edit them; everyone else can view.' },
   { id: 'spam', label: 'Spam Check', tip: 'Daily check of whether each team member’s e-mail and phone were checked for spam. Only Guillermo can tick the boxes; everyone else can view.' },
   { id: 'disputes', label: 'Discrepancies', tip: 'Discrepancies raised on the portal, each with a conversation between Yash and the rep. Yash accepts or rejects them.' },
@@ -552,8 +565,10 @@ function render() {
   $('dot').classList.toggle('old', (Date.now() - Date.parse(D.updatedAt)) / 36e5 > 30);
 
   // sidebar = the views (like the RISE portal's menu); the rep is a filter next to the date
-  const ICONS = { compliance: '<path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>', dashboard: '<path d="M4 13h6V4H4zM14 20h6V11h-6zM14 4h6v4h-6zM4 17h6v3H4z"/>', daily: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>', tracker: '<path d="M4 6h16M4 12h16M4 18h10"/>', metrics: '<path d="M5 20V10M12 20V4M19 20v-7"/>', pipeline: '<path d="M4 5h16l-6 7v6l-4 2v-8z"/>', verify: '<path d="M4 12l5 5L20 6"/>', commission: '<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"/>', checkin: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M16 11l2 2 4-4"/>', spam: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>', disputes: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/>' };
-  $('rail').innerHTML = TABS.map((x) => `<button class="person nav-item" data-t="${x.id}" ${x.id === S.tab ? 'aria-current="true"' : ''}><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[x.id] || ''}</svg><span class="nm">${x.label}</span>${ic(x.tip).replace(' tabindex="0"', '')}</button>`).join('');
+  const ICONS = { compliance: '<path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>', dashboard: '<path d="M4 13h6V4H4zM14 20h6V11h-6zM14 4h6v4h-6zM4 17h6v3H4z"/>', daily: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>', tracker: '<path d="M4 6h16M4 12h16M4 18h10"/>', metrics: '<path d="M5 20V10M12 20V4M19 20v-7"/>', pipeline: '<path d="M4 5h16l-6 7v6l-4 2v-8z"/>', verify: '<path d="M4 12l5 5L20 6"/>', commission: '<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"/>', feedback: '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><path d="M8 9h8M8 13h5"/>', checkin: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M16 11l2 2 4-4"/>', spam: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>', disputes: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/>' };
+  const canSee = (t) => t.id !== 'feedback' || !!(D.me && D.me.feedback);
+  if (!canSee({ id: S.tab })) S.tab = 'dashboard';
+  $('rail').innerHTML = TABS.filter(canSee).map((x) => `<button class="person nav-item" data-t="${x.id}" ${x.id === S.tab ? 'aria-current="true"' : ''}><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[x.id] || ''}</svg><span class="nm">${x.label}</span>${ic(x.tip).replace(' tabindex="0"', '')}</button>`).join('');
   $('rail').querySelectorAll('.nav-item').forEach((b) => (b.onclick = () => { S.tab = b.dataset.t; store.set('sp.tab', S.tab); document.body.classList.remove('nav'); render(); window.scrollTo(0, 0); }));
 
   msRender('repMs', 'Team member', [{ t: 'Regions', items: (D.groups || []).map((g) => ({ v: g, t: g })) }, { t: 'People', items: D.reps.map((r) => ({ v: r, t: r })) }], S.reps, (v) => { S.reps = v; reload(); }, 'All');
@@ -565,19 +580,20 @@ function render() {
   $('scopeTip').textContent = 'i';
   $('scopeSub').textContent = COPY[cur.id][0];
   $('hint').textContent = COPY[cur.id][1];
-  $('toolbar').style.display = S.tab === 'dashboard' || ((S.tab === 'spam' || S.tab === 'checkin') && S.mode === 'day') ? 'none' : 'flex';
+  $('toolbar').style.display = S.tab === 'dashboard' || S.tab === 'feedback' || ((S.tab === 'spam' || S.tab === 'checkin') && S.mode === 'day') ? 'none' : 'flex';
   $('raiseBtn').classList.toggle('hide', S.tab !== 'disputes');
   if (D.me) {
     $('sideFoot').innerHTML = `<div class="av">${esc(initials(D.me.name))}</div><div class="who"><b>${esc(D.me.name)}</b><small>${esc(D.me.email)}${D.me.resolver ? ' · resolves discrepancies' : ''}</small><div class="links"><button id="outBtn">Sign out</button></div></div>`;
     $('outBtn').onclick = signOut;
   }
-  document.querySelector('.card').classList.toggle('bare', S.tab === 'dashboard' || (S.tab === 'checkin' && S.mode === 'day'));
+  document.querySelector('.card').classList.toggle('bare', S.tab === 'dashboard' || S.tab === 'feedback' || (S.tab === 'checkin' && S.mode === 'day'));
 
   const note = $('note'); note.hidden = true;
   const v = $('view');
   if (S.tab === 'dashboard') v.innerHTML = dashboard();
   else if (S.tab === 'spam') spamView(v, note);
   else if (S.tab === 'checkin') checkinView(v);
+  else if (S.tab === 'feedback') feedbackView(v);
   else {
     const rows = { compliance: D.compliance, daily: D.daily, tracker: D.tracker, metrics: D.metrics, pipeline: D.pipeline, verify: D.verify, commission: D.commission, disputes: D.disputes }[S.tab];
     v.innerHTML = rows && rows.length ? table(S.tab, rows) : S.tab === 'disputes' ? '<div class="empty"><b>No discrepancies raised</b>Raise one from a deal in Closed Won Check, or with “Raise a discrepancy”.</div>' : '<div class="empty"><b>No activity for this selection</b>Try another day, or choose a wider date range.</div>';
@@ -673,6 +689,64 @@ function spamView(v, note) {
 const verdict = (c) => (c && c.spam ? { 'Spam Detected': 'Spam detected', 'Works Fine': '—' }
   : c && c.ok ? { 'Spam Detected': '—', 'Works Fine': 'Works fine' }
   : { 'Spam Detected': 'Not marked', 'Works Fine': 'Not marked' });
+// ---------- Feedback: Yash / Shreyans give feedback to a sales person; that person (and the givers) comment ----------
+// unsaved text in any [data-draft] box survives re-renders (the page reloads its data every 5 minutes)
+S.drafts = {};
+document.addEventListener('input', (e) => { const k = e.target.dataset && e.target.dataset.draft; if (k) S.drafts[k] = e.target.value; });
+function feedbackView(v) {
+  const fb = S.D.feedback || { people: [], items: [] }, me = S.D.me || {}, giver = me.feedback === 'give';
+  const dr = (k) => esc(S.drafts[k] || '');
+  const form = !giver ? '' : `<form class="ckform" id="fbForm" novalidate>
+    <h3>Give feedback</h3>
+    <label>Sales person<select id="fbRep" data-draft="fb:rep"><option value="">Choose…</option>${fb.people.map((p) => `<option ${S.drafts['fb:rep'] === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></label>
+    <label>Feedback<textarea id="fbText" data-draft="fb:text" maxlength="5000" placeholder="What went well, what to improve, next steps…">${dr('fb:text')}</textarea></label>
+    <div class="row"><span class="err" id="fbErr" role="alert"></span><button class="go" id="fbSend">Send feedback</button></div>
+  </form>`;
+  const shown = giver && S.fbFilter ? fb.items.filter((f) => f.rep === S.fbFilter) : fb.items;
+  const card = (f) => `<div class="ckitem">
+    <div class="top"><div class="fbmeta">${giver ? `<span class="pill na">To ${esc(f.rep)}</span>` : ''}<span>From <b>${esc(f.by)}</b> · ${esc(fmtWhen(f.at))}</span></div>
+      ${giver && f.by === me.name ? `<button class="mini bad" data-fbdel="${esc(f.id)}">Delete</button>` : ''}</div>
+    <p class="sum">${esc(f.text)}</p>
+    <div class="fbc">
+      ${f.comments.map((c) => `<div class="c${c.by === me.name ? ' mine' : ''}"><div class="h"><b>${esc(c.by)}</b><small>${esc(fmtWhen(c.at))}</small></div><p>${esc(c.text)}</p></div>`).join('')}
+      <div class="reply"><textarea data-draft="c:${esc(f.id)}" data-fbc="${esc(f.id)}" maxlength="4000" placeholder="${f.comments.length ? 'Reply…' : 'Leave a comment…'}" aria-label="Comment">${dr('c:' + f.id)}</textarea><button data-fbpost="${esc(f.id)}">Post</button></div>
+      <div class="err" data-fberr="${esc(f.id)}" role="alert"></div>
+    </div>
+  </div>`;
+  const filter = giver ? `<select id="fbFilter" aria-label="Show feedback for"><option value="">All sales people</option>${fb.people.map((p) => `<option ${S.fbFilter === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select>` : '';
+  const list = shown.length ? shown.map(card).join('')
+    : `<div class="empty"><b>No feedback yet</b>${giver ? (S.fbFilter ? 'Nothing written to ' + esc(S.fbFilter) + ' yet.' : 'Use the form above to give feedback.') : 'Feedback from Yash and Shreyans will appear here.'}</div>`;
+  v.innerHTML = `<div class="ck">${form}<div class="fbbar"><h4>${giver ? 'All feedback' : 'Feedback for you'}</h4>${filter}</div>${list}</div>`;
+
+  if (giver) {
+    $('fbFilter').onchange = (e) => { S.fbFilter = e.target.value; render(); };
+    $('fbRep').onchange = (e) => (S.drafts['fb:rep'] = e.target.value);
+    $('fbForm').onsubmit = async (ev) => {
+      ev.preventDefault(); $('fbErr').textContent = '';
+      const b = { action: 'give', rep: $('fbRep').value, text: $('fbText').value.trim() };
+      if (!b.rep) { $('fbErr').textContent = 'Choose the sales person this feedback is for.'; $('fbRep').focus(); return; }
+      if (!b.text) { $('fbErr').textContent = 'Write the feedback.'; $('fbText').focus(); return; }
+      const undo = busy($('fbSend'), 'Sending…');
+      try { const { item } = await api('/api/feedback', b); undo(); fb.items.unshift(item); delete S.drafts['fb:rep']; delete S.drafts['fb:text']; render(); }
+      catch (err) { undo(); $('fbErr').textContent = err.message; }
+    };
+  }
+  v.querySelectorAll('[data-fbpost]').forEach((btn) => (btn.onclick = async () => {
+    const id = btn.dataset.fbpost, box = v.querySelector(`[data-fbc="${CSS.escape(id)}"]`), errEl = v.querySelector(`[data-fberr="${CSS.escape(id)}"]`);
+    errEl.textContent = '';
+    if (!box.value.trim()) { errEl.textContent = 'Write a comment first.'; box.focus(); return; }
+    const undo = busy(btn, 'Posting…');
+    try { const { item } = await api('/api/feedback', { action: 'comment', id, text: box.value.trim() }); undo(); fb.items = fb.items.map((x) => (x.id === id ? item : x)); delete S.drafts['c:' + id]; render(); }
+    catch (err) { undo(); errEl.textContent = err.message; }
+  }));
+  v.querySelectorAll('[data-fbdel]').forEach((btn) => (btn.onclick = async () => {
+    if (!confirm('Delete this feedback and its comments? This cannot be undone.')) return;
+    const undo = busy(btn, 'Deleting…');
+    try { await api('/api/feedback', { action: 'delete', id: btn.dataset.fbdel }); undo(); fb.items = fb.items.filter((x) => x.id !== btn.dataset.fbdel); render(); }
+    catch (err) { undo(); alert('Could not delete: ' + err.message); }
+  }));
+}
+
 // ---------- Daily Checkin: Arth and Guillermo add / edit check-ins per day; everyone else views ----------
 function checkinView(v) {
   const ck = S.D.checkins || { people: [], entries: [] }, edit = S.D.me && S.D.me.checkin === 'edit';
@@ -724,7 +798,7 @@ function checkinView(v) {
       const { entry } = await api('/api/checkins', b);
       const i = ck.entries.findIndex((x) => x.id === entry.id);
       if (i >= 0) ck.entries[i] = entry; else ck.entries.push(entry);
-      S.ckEdit = null; S.ckDraft = null; render();
+      undo(); S.ckEdit = null; S.ckDraft = null; render();
     } catch (err) { undo(); $('ckErr').textContent = err.message; }
   };
   if ($('ckCancel')) $('ckCancel').onclick = () => { S.ckEdit = null; S.ckDraft = null; render(); };
@@ -732,7 +806,7 @@ function checkinView(v) {
   v.querySelectorAll('[data-ckdel]').forEach((b) => (b.onclick = async () => {
     if (!confirm('Delete this check-in? This cannot be undone.')) return;
     const undo = busy(b, 'Deleting…');
-    try { await api('/api/checkins', { action: 'delete', id: b.dataset.ckdel }); ck.entries = ck.entries.filter((x) => x.id !== b.dataset.ckdel); if (S.ckEdit === b.dataset.ckdel) S.ckEdit = null; render(); }
+    try { await api('/api/checkins', { action: 'delete', id: b.dataset.ckdel }); undo(); ck.entries = ck.entries.filter((x) => x.id !== b.dataset.ckdel); if (S.ckEdit === b.dataset.ckdel) S.ckEdit = null; render(); }
     catch (err) { undo(); alert('Could not delete: ' + err.message); }
   }));
 }
