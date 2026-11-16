@@ -47,6 +47,8 @@
   .ckform input[type=url], .ckform textarea { font:inherit; font-weight:400; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface) } .ckform textarea { min-height:110px; resize:vertical }
   .ckform input[type=url]:focus, .ckform textarea:focus { outline:0; border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
   .chips { display:flex; flex-wrap:wrap; gap:8px } .ckform .chips .spamcb { flex-direction:row; gap:8px; font-size:14px; font-weight:500; color:var(--ink) } .ckform .chips .spamcb:has(input:checked) { color:var(--good) }
+  .ckform .req { font-weight:500; color:var(--bad); font-size:11.5px; margin-left:4px }
+  .ckhint { font-weight:400; font-size:12.5px; color:var(--ink2) } .ckhint.ok { color:var(--good) } .ckhint.bad { color:var(--bad) } .ckhint.busy { font-style:italic }
   .ckform .row { display:flex; gap:10px; justify-content:flex-end; align-items:center } .ckform .row .err { margin-right:auto; color:var(--bad); font-size:13px }
   .ckform .row button { padding:9px 22px; border-radius:999px; font-weight:600; border:1px solid var(--line); background:var(--surface2) } .ckform .row button.go { background:var(--accent); border-color:var(--accent); color:#fff }
   .ckitem { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 20px; display:flex; flex-direction:column; gap:10px }
@@ -182,10 +184,12 @@
   .sec > h3 { display:flex; align-items:center; margin:0 0 4px; font:600 16px/1.3 "Red Hat Display", Inter, sans-serif; color:var(--ink) }
   .sec > p { margin:0 0 16px; color:var(--mute); font-size:13px }
   .rrow { display:grid; grid-template-columns:120px minmax(0,1fr) 64px; align-items:center; gap:14px; padding:10px 0 } .rrow + .rrow { border-top:1px solid var(--line2) }
+  .sec.fill { display:flex; flex-direction:column } .rrows { flex:1; display:flex; flex-direction:column; gap:10px }
+  .rrows .rrow { flex:1; padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:var(--bg) } .rrows .rrow + .rrow { border-top:1px solid var(--line) }
   .rrow .nm b { display:block; font-weight:600 } .rrow .nm small { color:var(--mute); font-size:12px }
   .rrow .pc { text-align:right; font:700 18px/1 "Red Hat Display", Inter, sans-serif }
   .track { height:8px; border-radius:999px; background:var(--na-bg); overflow:hidden } .track i { display:block; height:100%; border-radius:999px; background:var(--accent) } .rrow.sub .track i { background:var(--accent-light) }
-  .tiles { display:grid; gap:10px }
+  .tiles { display:grid; gap:10px } .sec.fill .tiles { flex:1; grid-auto-rows:1fr }
   .tile { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:var(--bg) }
   .tile .tv { font:700 28px/1 "Red Hat Display", Inter, sans-serif } .tile .hs { margin-top:4px }
   .qgrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px }
@@ -687,8 +691,8 @@ function checkinView(v) {
   const form = !edit ? '' : `<form class="ckform" id="ckForm" novalidate>
     <h3>${cur ? 'Edit check-in' : 'Add a check-in'} · ${esc(fmtLong(day))}</h3>
     <div class="fl">Sales people<div class="chips">${ck.people.map((p) => `<label class="spamcb green"><input type="checkbox" name="ckp" value="${esc(p)}" ${val.people.includes(p) ? 'checked' : ''}><span>${esc(p)}</span></label>`).join('')}</div></div>
-    <label>Granola link<input type="url" id="ckLink" maxlength="500" placeholder="https://notes.granola.ai/…" value="${esc(val.link)}"></label>
-    <label>Summary<textarea id="ckSum" maxlength="5000" placeholder="What was discussed, decisions and next steps…">${esc(val.summary)}</textarea></label>
+    <label><span>Granola link <span class="req">required</span></span><input type="url" id="ckLink" maxlength="500" required placeholder="https://notes.granola.ai/d/…" value="${esc(val.link)}"><span class="ckhint" id="ckHint" aria-live="polite">Paste the check-in’s Granola link and its summary is filled in for you.</span></label>
+    <label>Summary<textarea id="ckSum" maxlength="20000" placeholder="Filled in from Granola. You can edit it before saving.">${esc(val.summary)}</textarea></label>
     <div class="row"><span class="err" id="ckErr" role="alert"></span>${cur ? '<button type="button" id="ckCancel">Cancel</button>' : ''}<button class="go" id="ckSave">${cur ? 'Save changes' : 'Save'}</button></div>
   </form>`;
   const item = (e) => `<div class="ckitem${e.id === S.ckEdit ? ' editing' : ''}">
@@ -701,11 +705,19 @@ function checkinView(v) {
   v.innerHTML = `<div class="ck">${form}${items}</div>`;
   if (!edit) return;
 
-  $('ckForm').oninput = () => (S.ckDraft = { day, id: S.ckEdit, people: [...v.querySelectorAll('input[name=ckp]:checked')].map((x) => x.value), link: $('ckLink').value, summary: $('ckSum').value });
+  const draft = () => (S.ckDraft = { day, id: S.ckEdit, people: [...v.querySelectorAll('input[name=ckp]:checked')].map((x) => x.value), link: $('ckLink').value, summary: $('ckSum').value, filled: ckFilled });
+  $('ckForm').oninput = draft;
+  ckAsked = ''; ckFilled = dr && dr.filled || '';
+  // pasting / typing a Granola link fetches that note's summary into the Summary box
+  let timer;
+  $('ckLink').oninput = () => { clearTimeout(timer); timer = setTimeout(() => granolaSummary(draft), 400); };
+  $('ckLink').onchange = () => { clearTimeout(timer); granolaSummary(draft); };
   $('ckForm').onsubmit = async (ev) => {
     ev.preventDefault(); $('ckErr').textContent = '';
     const b = { action: 'save', id: S.ckEdit || undefined, date: day, people: [...v.querySelectorAll('input[name=ckp]:checked')].map((x) => x.value), link: $('ckLink').value.trim(), summary: $('ckSum').value.trim() };
     if (!b.people.length) { $('ckErr').textContent = 'Pick at least one sales person.'; return; }
+    if (!b.link) { $('ckErr').textContent = 'Add the Granola link.'; $('ckLink').focus(); return; }
+    if (!GRANOLA_LINK.test(b.link)) { $('ckErr').textContent = 'The Granola link must look like https://notes.granola.ai/d/…'; $('ckLink').focus(); return; }
     if (!b.summary) { $('ckErr').textContent = 'Write a summary.'; $('ckSum').focus(); return; }
     const undo = busy($('ckSave'), 'Saving…');
     try {
@@ -723,6 +735,29 @@ function checkinView(v) {
     try { await api('/api/checkins', { action: 'delete', id: b.dataset.ckdel }); ck.entries = ck.entries.filter((x) => x.id !== b.dataset.ckdel); if (S.ckEdit === b.dataset.ckdel) S.ckEdit = null; render(); }
     catch (err) { undo(); alert('Could not delete: ' + err.message); }
   }));
+}
+
+// Daily Checkin: fetch the summary of the Granola note in the link box and put it in the Summary box.
+// Text the user typed themselves is only replaced after they confirm; a summary filled in earlier is just replaced.
+const GRANOLA_LINK = /^https?:\/\/([\w-]+\.)*granola\.ai\/\S*[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+let ckAsked = '', ckFilled = '';
+async function granolaSummary(draft) {
+  const link = ($('ckLink') || {}).value?.trim() || '', hint = (t, cls) => { const h = $('ckHint'); if (h) { h.textContent = t; h.className = 'ckhint ' + (cls || ''); } };
+  if (!link) { ckAsked = ''; return hint('Paste the check-in’s Granola link and its summary is filled in for you.'); }
+  if (!GRANOLA_LINK.test(link)) { ckAsked = ''; return hint('That doesn’t look like a Granola note link (https://notes.granola.ai/d/…).', 'bad'); }
+  if (link === ckAsked) return;
+  ckAsked = link; hint('Fetching the summary from Granola…', 'busy');
+  try {
+    const note = await api('/api/checkins', { action: 'granola', link });
+    if (($('ckLink') || {}).value?.trim() !== link) return; // the link changed while we waited
+    if (!note.summary) return hint(`Found “${note.title || 'Untitled note'}”, but Granola has no summary for it yet. Write one below.`, 'bad');
+    const sum = $('ckSum'), mine = sum.value.trim();
+    if (mine && mine !== ckFilled.trim() && mine !== note.summary && !confirm('Replace the summary you wrote with the one from Granola?')) return hint(`Kept your summary. Granola note: “${note.title || 'Untitled note'}”.`);
+    sum.value = ckFilled = note.summary; draft();
+    hint(`Summary filled in from “${note.title || 'Untitled note'}”. You can edit it before saving.`, 'ok');
+  } catch (err) {
+    if (($('ckLink') || {}).value?.trim() === link) { ckAsked = ''; hint('Could not fetch the summary: ' + err.message, 'bad'); }
+  }
 }
 
 // [stored key, column, ticked label, unticked label, colour]
@@ -763,25 +798,22 @@ function dashboard() {
 
   // 2. leads -> booked calls, overall and by source (same cohort: contacts created in these dates)
   const LEAD_TIPS = {
-    all: 'Lead to Meeting: the share of all leads (including Meta) that booked a call.\nAll HubSpot contacts created in the selected dates, counted under the contact owner.\nBooked = the contact booked a call through HubSpot’s meetings tool (at any time so far), so recent contacts may still book later and raise this number.\nAll leads = Meta ads + Other sources.',
-    meta: 'New contacts whose HubSpot “partner” field contains “meta”: leads from Meta (Facebook / Instagram) instant forms.\nPercentage = Meta contacts who booked a call ÷ all Meta contacts created in the selected dates. Compare it with Other sources to judge Meta lead quality.',
-    other: 'Other Lead to Meeting: the share of leads excluding Meta that booked a call, i.e. organic leads that came from the website etc.\nThese are new contacts whose “partner” field does not contain “meta”: website, referrals, partners and every other source.\nPercentage = other-source contacts who booked a call ÷ all other-source contacts created in the selected dates.',
+    all: 'Lead to Meeting: the share of all leads (including Meta) that booked a call.\nAll HubSpot contacts created in the selected dates, counted under the contact owner.\nBooked = the contact booked a call through HubSpot’s meetings tool (at any time so far), so recent contacts may still book later and raise this number.\nAll leads includes Meta ads.',
+    meta: 'New contacts whose HubSpot “partner” field contains “meta”: leads from Meta (Facebook / Instagram) instant forms.\nPercentage = Meta contacts who booked a call ÷ all Meta contacts created in the selected dates. Compare it with All leads to judge Meta lead quality.',
   };
   const row = (name, tipKey, contacts, booked, rate, sub) => `<div class="rrow${sub ? ' sub' : ''}">
     <div class="nm"><b>${name}${ic(LEAD_TIPS[tipKey])}</b><small>${n(booked)} of ${n(contacts)} booked</small></div>
     <div class="track"><i style="width:${pc(m[rate])}%"></i></div><div class="pc">${n(rate)}</div></div>`;
-  const leads = `<section class="sec"><h3>New leads → booked calls${ic('Of the HubSpot contacts created in the selected dates, the share who booked a call through HubSpot’s meetings tool. Split by lead source: Meta = the contact’s “partner” field contains “meta”.\nUse the (i) on each row for details.')}</h3>
+  const leads = `<section class="sec fill"><h3>New leads → booked calls${ic('Of the HubSpot contacts created in the selected dates, the share who booked a call through HubSpot’s meetings tool. Split by lead source: Meta = the contact’s “partner” field contains “meta”.\nUse the (i) on each row for details.')}</h3>
     <p>${n('Contacts')} new contacts in these dates</p>
-    ${row('All leads', 'all', 'Contacts', 'Booked Call', 'Lead-to-Meeting %')}
-    ${row('Meta ads', 'meta', 'Meta Contacts', 'Meta Booked Call', 'Meta Lead-to-Meeting %', true)}
-    ${row('Other sources', 'other', 'Other Contacts', 'Other Booked Call', 'Other Lead-to-Meeting %', true)}
+    <div class="rrows">${row('All leads', 'all', 'Contacts', 'Booked Call', 'Lead-to-Meeting %')}${row('Meta ads', 'meta', 'Meta Contacts', 'Meta Booked Call', 'Meta Lead-to-Meeting %', true)}</div>
   </section>`;
 
   // 3. follow-up hygiene: things that need action, with a status label (never colour alone)
   const status = (v) => (Number(v) > 0 ? '<span class="pill warn">Needs action</span>' : '<span class="pill good">All clear</span>');
-  const follow = `<section class="sec"><h3>Follow-up${ic('Work still waiting on the team. “Needs action” shows when the count is above zero.')}</h3><p>What still needs doing</p><div class="tiles">
+  const follow = `<section class="sec fill"><h3>Follow-up${ic('Work still waiting on the team. “Needs action” shows when the count is above zero.')}</h3><p>What still needs doing</p><div class="tiles">
     <div class="tile"><div>${lbl('Post-call pending', KPI_TIPS['Post-Call Pending'])}<div class="tv" style="margin-top:6px">${n('Post-Call Pending')}</div><div class="hs">${n('Post-Call Sent')} sent</div></div>${status(m['Post-Call Pending'])}</div>
-    <div class="tile"><div>${lbl('Overdue tasks', KPI_TIPS['Overdue Tasks'])}<div class="tv" style="margin-top:6px">${n('Overdue Tasks')}</div><div class="hs">right now, ignores the dates</div></div>${status(m['Overdue Tasks'])}</div>
+    <div class="tile"><div>${lbl('Overdue tasks', KPI_TIPS['Overdue Tasks'])}<div class="tv" style="margin-top:6px">${n('Overdue Tasks')}</div></div>${status(m['Overdue Tasks'])}</div>
   </div></section>`;
 
   // 4. call quality (Granola recordings)

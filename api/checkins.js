@@ -6,6 +6,7 @@ const checkins = require('../lib/checkins');
 // GET ?from=YYYY-MM-DD&to=YYYY-MM-DD           -> { people, entries }
 // POST { action: 'save', id?, date, people, link, summary }  -> { entry }   (no id = new check-in)
 // POST { action: 'delete', id }                             -> { ok: true }
+// POST { action: 'granola', link }                          -> { link, title, summary }   (prefills the form)
 module.exports = async (req, res) => {
   const user = await authorize(req, res);
   if (!user) return;
@@ -13,6 +14,7 @@ module.exports = async (req, res) => {
     if (req.method === 'GET') { const q = query(req); return json(res, 200, await checkins.list(q.from, q.to)); }
     if (req.method !== 'POST') return json(res, 405, { error: 'GET or POST' });
     const b = await body(req);
+    if (b.action === 'granola') return json(res, 200, await checkins.fromGranola(user, b.link));
     if (b.action === 'delete') { await checkins.remove(user, b.id); return json(res, 200, { ok: true }); }
     return json(res, 200, { entry: await checkins.save(user, b) });
   } catch (e) { json(res, e.status || 500, { error: e.message }); }
