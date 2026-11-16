@@ -28,7 +28,7 @@ setInterval(() => service.sendScheduled().then((r) => r.forEach(([k, v]) => v.se
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   // same handlers as the Vercel functions in api/
-  const api = { '/api/auth': './api/auth', '/api/data': './api/data', '/api/disputes': './api/disputes', '/api/spam': './api/spam' }[url.pathname];
+  const api = { '/api/auth': './api/auth', '/api/data': './api/data', '/api/disputes': './api/disputes', '/api/spam': './api/spam', '/api/checkins': './api/checkins' }[url.pathname];
   if (api) return require(api)(req, res);
   const p = path.join(__dirname, 'public', url.pathname === '/' ? 'index.html' : path.normalize(url.pathname));
   if (!p.startsWith(path.join(__dirname, 'public')) || !fs.existsSync(p)) { res.writeHead(404); return res.end('Not found'); }

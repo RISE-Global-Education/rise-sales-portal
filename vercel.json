@@ -11,6 +11,9 @@
     },
     "api/spam.js": {
       "maxDuration": 30
+    },
+    "api/checkins.js": {
+      "maxDuration": 30
     }
   },
   "crons": [
