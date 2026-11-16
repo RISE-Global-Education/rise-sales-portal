@@ -301,7 +301,7 @@
         <h5>How the numbers are calculated</h5>
         <ul>
           <li>A meeting counts only if it is recorded on Granola <b>or</b> the post-call sequence was sent through HubSpot.</li>
-          <li>Closed Won = deals in the Sales Pipeline's Closed Won stage.</li>
+          <li>Closed Won = deals in the Sales Pipeline's Closed Won stage, dated by their Airtable Client Date (HubSpot close date when there is no Airtable record), the same in every tab.</li>
           <li>Overdue Tasks = tasks overdue right now (not completed and past their due time in HubSpot). Pending, created and completed tasks are not shown.</li>
           <li>Coloured chips use the sheet's targets: Portal 80%+, 20-min calls 50%+, average call 20+ min, conversion 30%+.</li>
           <li>Each person's dates follow their own time zone (India or US Eastern).</li>
@@ -351,7 +351,7 @@ const HINTS = {
   'Portal Compliance': 'Granola notes that mention the student portal ÷ all Granola notes. Target 80%+.',
   '20 Min Duration Compliance': 'Granola notes with a transcript of 20 minutes or more ÷ notes with a duration. Target 50%+.',
   'Average Call Duration': 'Average Granola transcript length in minutes (first to last spoken line). Target 20+.',
-  'Deals Closed': 'Deals that reached Closed Won in the Sales Pipeline with a close date in the selected dates.',
+  'Deals Closed': 'Closed Won deals in the Sales Pipeline dated in the selected dates by their Airtable Client Date (HubSpot close date when there is no Airtable record).',
   'Total Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent.',
   'Conversion Rate': 'Deals closed ÷ meetings taken. Target 30%+.',
   // daily
@@ -364,7 +364,7 @@ const HINTS = {
   '20+ Minutes?': 'Yes if the transcript ran 20 minutes or more.', 'Portal Mentioned?': 'Yes if “portal” appears in the summary or transcript.',
   'Granola Note': 'Opens the full note in Granola.', 'Summary': 'First 300 characters of Granola’s summary (hover for the text).',
   // metrics
-  'Closed Won': 'Deals that reached Closed Won in the selected dates.', 'Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent.',
+  'Closed Won': 'Closed Won deals dated in the selected dates by their Airtable Client Date (HubSpot close date when there is no Airtable record), the same date Closed Won Check uses.', 'Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent.',
   'Contacts': 'HubSpot contacts created in the selected dates and assigned to the rep.', 'Booked Call': 'Those contacts who booked a call through HubSpot’s meetings tool.',
   'Lead-to-Meeting %': 'Contacts who booked a call ÷ contacts.',
   'Leads Claimed': 'Contacts whose HubSpot “Owner assigned date” falls in the selected dates, i.e. leads assigned to (claimed by) the rep in that period. Dated in the rep’s own time zone.',
@@ -396,7 +396,7 @@ const HINTS = {
 Object.assign(HINTS, { 'Email Spam Checked': 'Yes = Guillermo marked this person’s e-mail as checked for spam on that day.', 'Phone Spam Checked': 'Yes = Guillermo marked this person’s phone number as checked for spam on that day.', 'Spam Detected': 'Red = the check found this person’s e-mail or phone flagged as spam on that day.', 'Works Fine': 'Green = the check found this person’s e-mail and phone working fine on that day.', 'Sales People': 'The sales people in this check-in.', 'Granola Link': 'Opens the check-in’s Granola note.', 'Check-in Summary': 'What was discussed (hover for the full text).' });
 const hint = (c) => HINTS[c] || (c.startsWith('Moved to ') ? `Deals that entered the “${c.slice(9)}” stage in the selected dates (a new deal counts as entering its first stage).` : c.startsWith('Open now: ') ? `Deals currently sitting in the “${c.slice(10)}” stage, whatever the dates.` : '');
 const KPI_TIPS = {
-  'Closed Won': 'Deals that reached the Sales Pipeline’s Closed Won stage with a close date in the selected dates.\nThe date is the close date in the deal owner’s own time zone.\nThis is HubSpot’s count: a win still needs proof of call and payment (see Closed Won Check) before it earns commission.',
+  'Closed Won': 'Deals in the Sales Pipeline’s Closed Won stage, dated in the selected dates by their Airtable Client Date (the day the client was confirmed).\nA deal with no Airtable client record is dated by its HubSpot close date, in the deal owner’s time zone.\nThis matches Closed Won Check, so both tabs count a deal on the same day. It is still HubSpot’s list of won deals: a win still needs proof of call and payment (see Closed Won Check) before it earns commission.',
   'Meetings Taken': 'Discovery calls that actually happened in the selected dates.\nA meeting counts if it was recorded on Granola, or if the post-call sequence was sent through HubSpot within 7 days of it.\nCancelled, rescheduled and future meetings, interviews and internal calls are left out.\nSmall text: how many of them were recorded on Granola.',
   'Close Rate': 'Closed Won deals ÷ meetings taken in the selected dates.\nSmall text: Closed Won ÷ new contacts.\nDeals and meetings are counted by their own dates, so a deal closed today from last week’s call still counts; short ranges can look high or low.',
   'Post-Call Pending': 'Granola-recorded calls where the HubSpot post-call sequence has not been sent to the contact yet.\nA sequence sent within 7 days after the call counts as sent.\nSmall text: recorded calls whose sequence was sent.',

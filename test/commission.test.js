@@ -234,3 +234,17 @@ test('Commission Calculator counts only the selected day / range (payout, never 
   const c = run(h, notes, '2026-11-11', '2026-11-11');
   assert.deepEqual(c.verified['2026-11|Arth Agarwal'].map((w) => w.Client).sort(), ['Client b', 'Client c']);
 });
+
+test('Metrics Summary dates Closed Won by the Airtable Client Date, like Closed Won Check', () => {
+  // closed in HubSpot on 4 Nov, but the Airtable client record says 23 Oct (the Saya Kaneda case); F has no Airtable record
+  const h = hs({
+    deals: [deal('S', 2, 's@x.com', '2026-11-04T10:00:00Z'), deal('F', 2, 'f@x.com', '2026-11-05T10:00:00Z')],
+    clients: [client('rs', 's@x.com', '', '2026-10-23')],
+  });
+  const won = (r) => r.metrics.find((m) => m['Team Member'] === 'Arth Agarwal')['Closed Won'];
+  const oct = run(h, [], '2026-10-01', '2026-10-31'), nov = run(h, [], '2026-11-01', '2026-11-30');
+  assert.equal(won(oct), 1); // S counts in October (Client Date)
+  assert.equal(won(nov), 1); // only F (no Airtable record -> HubSpot close date)
+  assert.deepEqual(oct.verify.map((r) => r.Client), ['Client S']);
+  assert.deepEqual(nov.verify.map((r) => r.Client), ['Client F']);
+});
