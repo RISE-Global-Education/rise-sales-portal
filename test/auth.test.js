@@ -31,7 +31,7 @@ test('every rep signs in with their own e-mail as the password; nobody else can 
   for (const u of USERS.filter((x) => !x.passwordEnv)) {
     const r = await login(client(), u.email, u.email);
     assert.equal(r.statusCode, 200, u.email);
-    assert.deepEqual(r.body.user, { email: u.email, name: u.name, resolver: false, spam: u.email === 'guillermo@riseresearch.com' ? 'edit' : 'view' });
+    assert.deepEqual(r.body.user, { email: u.email, name: u.name, resolver: false, spam: u.email === 'guillermo@riseresearch.com' ? 'edit' : 'view', checkin: ['arth@riseresearch.com', 'guillermo@riseresearch.com'].includes(u.email) ? 'edit' : 'view' });
   }
   assert.equal((await login(client(), ' ARTH@riseresearch.com ', 'Arth@RiseResearch.com')).statusCode, 200); // case / spaces do not matter
   assert.equal((await login(client(), 'arth@riseresearch.com', 'muskaan@riseresearch.com')).statusCode, 401); // someone else's e-mail
@@ -43,7 +43,7 @@ test('Yash: only YASH_PASSWORD works (not his e-mail); he is the resolver; chang
   assert.equal((await login(client(), 'yash@riseresearch.com', 'yash@riseresearch.com')).statusCode, 401);
   const y = client();
   const r = await login(y, 'yash@riseresearch.com', 'Yash-Env-Secret-1');
-  assert.deepEqual(r.body.user, { email: 'yash@riseresearch.com', name: 'Yash Mundada', resolver: true, spam: 'view' });
+  assert.deepEqual(r.body.user, { email: 'yash@riseresearch.com', name: 'Yash Mundada', resolver: true, spam: 'view', checkin: 'view' });
   assert.equal((await y.call(authApi, 'GET')).body.user.resolver, true);
   process.env.YASH_PASSWORD = 'Yash-Env-Secret-2';
   assert.equal((await y.call(authApi, 'GET')).statusCode, 401);
