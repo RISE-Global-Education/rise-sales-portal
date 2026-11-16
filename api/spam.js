@@ -4,7 +4,7 @@ const spam = require('../lib/spam');
 
 // Spam Check tab. Every signed-in user can read; only editors (SPAM_EDITORS, default Guillermo) can save.
 // GET ?from=YYYY-MM-DD&to=YYYY-MM-DD -> { team, checks }
-// POST { date, member, email, phone }  editors only -> { check }
+// POST { date, member, email, phone, spam, ok }  editors only -> { check }
 module.exports = async (req, res) => {
   const user = await authorize(req, res);
   if (!user) return;

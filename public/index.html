@@ -37,6 +37,8 @@
   .spamcb:has(input:checked) { border-color:var(--good); color:var(--good) }
   .spamcb input { width:18px; height:18px; margin:0; accent-color:var(--good); cursor:pointer }
   .spamcb input:disabled { cursor:progress }
+  .spamcb.red input { accent-color:var(--bad) } .spamcb.red:has(input:checked) { border-color:var(--bad); color:var(--bad); background:var(--bad-bg) }
+  .spamcb.green:has(input:checked) { background:var(--good-bg) }
 
   /* ---------- controls (LMS-style chips) ---------- */
   .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
@@ -106,10 +108,9 @@
   .search:focus-within, .filter:focus-within { border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
   .seg button[aria-pressed="true"]:hover { background:var(--accent-dark); border-color:var(--accent-dark); color:#fff }
   .chipbtn:active, .help:active, .seg button:active { background:var(--accent-soft) }
-  .kpi, .panel { transition:box-shadow .15s, transform .15s } .kpi:hover { box-shadow:0 4px 12px rgba(0,0,0,.10); transform:translateY(-1px) }
   @media (prefers-reduced-motion:reduce) { *, *::before, *::after { transition:none !important; animation-duration:.01ms !important } }
   .right { display:flex; align-items:center; gap:10px; margin-left:auto; flex-wrap:wrap }
-  .card.bare { background:none; border:0; box-shadow:none; padding:0; overflow:visible } .card.bare .dash { padding:0 }
+  .card.bare { background:none; border:0; box-shadow:none; padding:0; overflow:visible }
   .hint { margin:0 0 14px; color:var(--mute); font-size:12.5px }
   .avatar.all { background:var(--accent); color:#fff } .person .nm { white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
@@ -127,10 +128,6 @@
   .dot { width:8px; height:8px; border-radius:50%; background:var(--good) } .dot.old { background:#d99a1c }
 
   /* ---------- KPI cards ---------- */
-  .kpis[hidden] { display:none } .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px }
-  .kpi { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow) }
-  .kpi .l { display:flex; align-items:center; color:var(--mute); font-size:12px; font-weight:600; letter-spacing:.02em; text-transform:uppercase }
-  .kpi .v { font-family:"Red Hat Display", Inter, sans-serif; font-size:28px; font-weight:700; letter-spacing:-.02em; margin:4px 0 2px; line-height:1.1 } .kpi .s { color:var(--mute); font-size:12.5px }
 
   /* ---------- tabs + table card ---------- */
   .tabs { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; scrollbar-width:none; position:sticky; top:0; z-index:15; background:var(--bg); padding:8px 0 10px }
@@ -157,11 +154,28 @@
   .foot { padding:10px 16px; color:var(--mute); font-size:12.5px; border-top:1px solid var(--line2) }
   .empty { padding:48px 16px; text-align:center; color:var(--mute) } .empty b { display:block; color:var(--ink); font-size:15px; margin-bottom:4px }
 
-  .dash { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; padding:4px 4px 16px }
-  .panel { border:1px solid var(--line); border-radius:12px; padding:16px; background:var(--surface) }
-  .panel h3 { display:flex; align-items:center; margin:0 0 12px; font-size:13px; color:var(--ink2); text-transform:uppercase; letter-spacing:.04em }
-  .big { font-family:"Red Hat Display", Inter, sans-serif; font-size:34px; font-weight:700; letter-spacing:-.02em }
-  .bar { display:flex; height:12px; border-radius:999px; overflow:hidden; background:var(--na-bg); margin:12px 0 8px } .bar i { display:block; height:100% } .bar .a { background:var(--good) } .bar .b { background:#d6a93a }
+  /* ---------- dashboard: headline strip + themed sections ---------- */
+  .dboard { display:flex; flex-direction:column; gap:14px }
+  .hero { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow) }
+  .hero > div { padding:20px 24px } .hero > div + div { border-left:1px solid var(--line) }
+  .hl { display:flex; align-items:center; color:var(--mute); font-size:12px; font-weight:600; letter-spacing:.04em; text-transform:uppercase }
+  .hv { font-family:"Red Hat Display", Inter, sans-serif; font-size:40px; font-weight:700; letter-spacing:-.02em; line-height:1.1; margin:6px 0 4px }
+  .hs { color:var(--mute); font-size:13px }
+  .dgrid { display:grid; grid-template-columns:minmax(0,3fr) minmax(0,2fr); gap:14px }
+  .sec { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 20px }
+  .sec > h3 { display:flex; align-items:center; margin:0 0 4px; font:600 16px/1.3 "Red Hat Display", Inter, sans-serif; color:var(--ink) }
+  .sec > p { margin:0 0 16px; color:var(--mute); font-size:13px }
+  .rrow { display:grid; grid-template-columns:120px minmax(0,1fr) 64px; align-items:center; gap:14px; padding:10px 0 } .rrow + .rrow { border-top:1px solid var(--line2) }
+  .rrow .nm b { display:block; font-weight:600 } .rrow .nm small { color:var(--mute); font-size:12px }
+  .rrow .pc { text-align:right; font:700 18px/1 "Red Hat Display", Inter, sans-serif }
+  .track { height:8px; border-radius:999px; background:var(--na-bg); overflow:hidden } .track i { display:block; height:100%; border-radius:999px; background:var(--accent) } .rrow.sub .track i { background:var(--accent-light) }
+  .tiles { display:grid; gap:10px }
+  .tile { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:var(--bg) }
+  .tile .tv { font:700 28px/1 "Red Hat Display", Inter, sans-serif } .tile .hs { margin-top:4px }
+  .qgrid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px }
+  .q { padding:14px 16px; border:1px solid var(--line); border-radius:12px; background:var(--bg); min-width:0 } .q .tv { font:700 28px/1.1 "Red Hat Display", Inter, sans-serif; margin:6px 0 2px } .q .legend { flex-wrap:wrap; gap:4px 12px; font-size:12px }
+  .dempty { padding:18px; text-align:center; color:var(--mute); border:1px dashed var(--line); border-radius:12px }
+  .bar { display:flex; gap:2px; height:12px; border-radius:999px; overflow:hidden; background:var(--na-bg); margin:12px 0 8px } .bar i { display:block; height:100% } .bar .a { background:var(--good) } .bar .b { background:#d6a93a }
   .legend { display:flex; justify-content:space-between; color:var(--ink2); font-size:13px } .legend span::before { content:""; display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px } .legend .a::before { background:var(--good) } .legend .b::before { background:#d6a93a }
 
   .spin { display:flex; flex-direction:column; align-items:center; gap:12px; padding:56px 16px; color:var(--mute) } .spin::before { content:""; width:28px; height:28px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--accent); animation:rot .8s linear infinite } @keyframes rot { to { transform:rotate(360deg) } }
@@ -209,7 +223,8 @@
     main { padding:70px 14px 40px }
     .brand { padding-top:20px; padding-left:60px; text-align:left; margin:0 14px }
     .page-title { font-size:26px } .scroller { max-height:none }
-    .infobar { flex-wrap:wrap } .kpi .v { font-size:24px } .kpis { grid-template-columns:repeat(2,minmax(0,1fr)) }
+    .infobar { flex-wrap:wrap } .dgrid { grid-template-columns:1fr } .qgrid { grid-template-columns:repeat(2,minmax(0,1fr)) }
+    .hero { grid-template-columns:1fr } .hero > div + div { border-left:0; border-top:1px solid var(--line) } .hv { font-size:32px } .hero > div { padding:16px 18px }
     .cal { flex-direction:column; left:auto; right:0 } .presets { flex-direction:row; flex-wrap:wrap; border-right:0; border-bottom:1px solid var(--line) } .calbody { width:min(288px,calc(100vw - 40px)) }
   }
 </style>
@@ -267,7 +282,6 @@
       <button class="chipbtn hide" id="raiseBtn">Raise a discrepancy</button>
     </div>
     <p class="hint" id="hint"></p>
-    <section class="kpis" id="kpis"></section>
     <div class="card"><div id="view"></div><div class="foot" id="note" hidden></div></div>
   </main>
 </div>
@@ -279,9 +293,9 @@ function setOffsets(){ const r=document.documentElement.style, t=document.queryS
 addEventListener("resize", setOffsets); addEventListener("load", setOffsets); new MutationObserver(setOffsets).observe(document.documentElement,{childList:true,subtree:true}); setOffsets();
 document.getElementById('menuBtn').onclick = () => { document.body.classList.toggle('nav'); document.getElementById('menuBtn').textContent = document.body.classList.contains('nav') ? '✕' : '☰'; };
 document.getElementById('scrim').onclick = () => { document.body.classList.remove('nav'); document.getElementById('menuBtn').textContent = '☰'; };
-const COPY = { dashboard: ['How well recorded meetings follow the process: Granola recording, 20+ minute calls and portal mentions.', 'Use the Team member filter and the date picker to change what you see.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], spam: ['Daily spam check of each team member’s e-mail and phone. Guillermo ticks the boxes; everyone else can view.', 'Pick one day to see (or, for Guillermo, tick) that day’s checks. Pick a date range to see the history.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Open one to read and reply in its conversation (with screenshots). Yash accepts or rejects it there; an accepted deal moves to Verified Wins.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
+const COPY = { dashboard: ['Results, lead conversion, follow-up and call quality for the selected dates at a glance.', 'Use the Team member filter and the date picker to change what you see. Hover any (i) for how a number is calculated.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], spam: ['Daily spam check of each team member’s e-mail and phone. Guillermo ticks the boxes; everyone else can view.', 'Pick one day to see (or, for Guillermo, tick) that day’s checks. Pick a date range to see the history.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Open one to read and reply in its conversation (with screenshots). Yash accepts or rejects it there; an accepted deal moves to Verified Wins.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
 const TABS = [
-  { id: 'dashboard', label: 'Dashboard', tip: 'Granola meeting compliance: how many calls were recorded, how many ran 20+ minutes, and how many mentioned the student portal.' },
+  { id: 'dashboard', label: 'Dashboard', tip: 'The overview: deals closed, meetings and close rate; new leads who booked a call (by source); follow-ups still pending; and Granola call quality (length and portal mentions).' },
   { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
   { id: 'daily', label: 'Daily Tracker', tip: 'One row per person per day with meeting activity, filled automatically (the sheet’s hand-filled daily tab).' },
   { id: 'tracker', label: 'Meeting Tracker', tip: 'Every recorded Granola meeting in the selected dates, with duration, portal mention, a link to the note and a short summary.' },
@@ -345,21 +359,15 @@ const HINTS = {
   'Raised': 'Date the discrepancy was raised.', 'Reason': 'Why the deal should count.', 'Proof': 'Link given as proof (recording, receipt …).', 'Raised By': 'Who raised it.',
   'Resolution': 'Who resolved it, and their note.', 'Comments': 'Messages in the discrepancy’s conversation.', 'Files': 'Screenshots and files attached to it and its comments.', 'Thread': 'Open the discrepancy: details, attachments and the conversation (and Accept / Reject for Yash).',
 };
-Object.assign(HINTS, { 'Email Spam Checked': 'Yes = Guillermo marked this person’s e-mail as checked for spam on that day.', 'Phone Spam Checked': 'Yes = Guillermo marked this person’s phone number as checked for spam on that day.' });
+Object.assign(HINTS, { 'Email Spam Checked': 'Yes = Guillermo marked this person’s e-mail as checked for spam on that day.', 'Phone Spam Checked': 'Yes = Guillermo marked this person’s phone number as checked for spam on that day.', 'Spam Detected': 'Red = the check found this person’s e-mail or phone flagged as spam on that day.', 'Works Fine': 'Green = the check found this person’s e-mail and phone working fine on that day.' });
 const hint = (c) => HINTS[c] || (c.startsWith('Moved to ') ? `Deals that entered the “${c.slice(9)}” stage in the selected dates (a new deal counts as entering its first stage).` : c.startsWith('Open now: ') ? `Deals currently sitting in the “${c.slice(10)}” stage, whatever the dates.` : '');
 const KPI_TIPS = {
-  'Closed Won': 'Deals that reached the Sales Pipeline’s Closed Won stage with a close date in the selected dates.\nThe date is the close date in the deal owner’s own time zone.\nThis is HubSpot’s count: a win still needs proof of call and payment (see Closed Won Check) before it earns commission.\nSmall text: meetings taken in the same dates.',
+  'Closed Won': 'Deals that reached the Sales Pipeline’s Closed Won stage with a close date in the selected dates.\nThe date is the close date in the deal owner’s own time zone.\nThis is HubSpot’s count: a win still needs proof of call and payment (see Closed Won Check) before it earns commission.',
   'Meetings Taken': 'Discovery calls that actually happened in the selected dates.\nA meeting counts if it was recorded on Granola, or if the post-call sequence was sent through HubSpot within 7 days of it.\nCancelled, rescheduled and future meetings, interviews and internal calls are left out.\nSmall text: how many of them were recorded on Granola.',
-  'New Contacts': 'HubSpot contacts created in the selected dates, counted under the contact owner.\nSmall text: how many of these contacts have booked a call through HubSpot’s meetings tool (at any time so far).',
-  'Lead → Meeting': 'Booked a call ÷ new contacts, as a percentage.\nOnly contacts created in the selected dates are counted, so recent contacts may still book later and raise this number.',
-  'Meta Contacts': 'New contacts whose HubSpot “partner” field contains “meta”: leads from Meta (Facebook / Instagram) instant forms.\nSmall text: how many of them booked a call.',
-  'Meta Lead → Meeting': 'Meta contacts who booked a call ÷ all Meta contacts created in the selected dates.\nUse it to compare Meta lead quality with the other sources.',
-  'Other Contacts': 'New contacts whose “partner” field does not contain “meta” (website, referrals, partners and every other source).\nNew Contacts = Meta Contacts + Other Contacts.',
-  'Other Lead → Meeting': 'Other-source contacts who booked a call ÷ all other-source contacts created in the selected dates.',
   'Close Rate': 'Closed Won deals ÷ meetings taken in the selected dates.\nSmall text: Closed Won ÷ new contacts.\nDeals and meetings are counted by their own dates, so a deal closed today from last week’s call still counts; short ranges can look high or low.',
   'Post-Call Pending': 'Granola-recorded calls where the HubSpot post-call sequence has not been sent to the contact yet.\nA sequence sent within 7 days after the call counts as sent.\nSmall text: recorded calls whose sequence was sent.',
   'Overdue Tasks': 'HubSpot tasks that are overdue right now: not completed and past their due time.\nThis is a live count and does not change with the selected dates or the Lead country filter.',
-  'Avg Call Duration': 'Average length of the Granola-recorded calls in the selected dates.\nLength = first to last spoken line of the transcript, not the calendar slot. Calls without a transcript are skipped.\nSmall text: recorded calls where “portal” was mentioned.',
+  'Avg Call Duration': 'Average length of the Granola-recorded calls in the selected dates.\nLength = first to last spoken line of the transcript, not the calendar slot. Calls without a transcript are skipped.\nThe target is 20+ minutes.',
 };
 const PANEL_TIPS = {
   'Total meetings': 'Number of Granola notes (recorded discovery calls) in the selected dates.\nIncludes recorded calls that have no matching HubSpot meeting (e.g. ad-hoc calls).\nMeetings that were only followed up with a post-call sequence are not in this number, so it can be lower than Meetings Taken.',
@@ -543,8 +551,6 @@ function render() {
     $('outBtn').onclick = signOut;
   }
   document.querySelector('.card').classList.toggle('bare', S.tab === 'dashboard');
-  $('kpis').hidden = S.tab !== 'dashboard'; // the summary cards belong to the Dashboard view only
-  renderKpis();
 
   const note = $('note'); note.hidden = true;
   const v = $('view');
@@ -558,26 +564,6 @@ function render() {
     const txt = { verify: `${vv.length} Closed Won deals · ${nOk} verified · ${vv.length - nOk} missing proof`, commission: 'Commission resets every month and counts verified wins by their Airtable Client Date. Ramya’s meetings = meetings taken that month (Granola-recorded or post-call sent).', disputes: `${(D.disputes || []).filter((d) => d.Status === 'Open').length} open`, tracker: `${rows ? rows.length : 0} meetings`, metrics: 'Contacts = HubSpot contacts created in the range · Overdue Tasks is the current count and ignores the dates.', pipeline: 'A new deal counts as entering its first stage.', compliance: 'Chip colours follow the sheet’s targets: green at target, amber within 30%, red below.' }[S.tab];
     if (txt) { note.textContent = txt; note.hidden = false; }
   }
-}
-
-function renderKpis() {
-  const m = S.D.metrics.find((x) => x['Team Member'] === 'Team') || S.D.metrics[S.D.metrics.length - 1]; // 'Team' = everyone currently selected
-  const n = (k) => (typeof m[k] === 'number' ? m[k].toLocaleString() : m[k]);
-  const cards = [
-    ['Closed Won', n('Closed Won'), `${n('Meetings Taken')} meetings taken`],
-    ['Meetings Taken', n('Meetings Taken'), `${m['Post-Call Sent'] + m['Post-Call Pending']} recorded on Granola`],
-    ['New Contacts', n('Contacts'), `${n('Booked Call')} booked a call`],
-    ['Lead → Meeting', n('Lead-to-Meeting %'), `${n('Booked Call')} booked / ${n('Contacts')} contacts`],
-    ['Meta Contacts', n('Meta Contacts'), `${n('Meta Booked Call')} booked a call`],
-    ['Meta Lead → Meeting', n('Meta Lead-to-Meeting %'), `${n('Meta Booked Call')} booked / ${n('Meta Contacts')} Meta contacts`],
-    ['Other Contacts', n('Other Contacts'), `${n('Other Booked Call')} booked a call`],
-    ['Other Lead → Meeting', n('Other Lead-to-Meeting %'), `${n('Other Booked Call')} booked / ${n('Other Contacts')} other contacts`],
-    ['Close Rate', n('Close Rate (of meetings)'), `of meetings · ${n('Close Rate (of contacts)')} of contacts`],
-    ['Post-Call Pending', n('Post-Call Pending'), `${n('Post-Call Sent')} sent`],
-    ['Overdue Tasks', n('Overdue Tasks'), 'overdue right now'],
-    ['Avg Call Duration', m['Avg Duration (min)'] === '—' ? '—' : m['Avg Duration (min)'] + ' min', `${n('Portal Mentioned')} portal mentions`],
-  ];
-  $('kpis').innerHTML = cards.map(([l, v, s]) => `<div class="kpi"><div class="l">${l}${ic(KPI_TIPS[l])}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></div>`).join('');
 }
 
 function chipClass(col, v) { const t = TARGETS[col]; if (t == null) return null; const x = parseFloat(v); if (isNaN(x)) return 'na'; return x >= t ? 'good' : x >= t * 0.7 ? 'warn' : 'bad'; }
@@ -600,6 +586,12 @@ function cell(col, v, r = {}) {
   if (col === 'Verified Wins' && typeof v === 'number' && v > 0) return `<td><button class="mini eye ok" data-ver="${esc(r.Month + '|' + r['Team Member'])}" aria-label="View the ${v} verified wins">${EYE}${v}</button></td>`;
   if (col === 'Details' || col === 'Resolution' || col === 'Reason' || col === 'Client') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (col === 'Granola Note') return `<td class="l">${v ? `<a class="open" href="${esc(v)}" target="_blank" rel="noopener">Open ↗</a>` : '<span class="dim">—</span>'}</td>`;
+  if (col === 'Spam Detected' || col === 'Works Fine') {
+    if (v === 'Spam detected') return '<td><span class="pill bad">Spam detected</span></td>';
+    if (v === 'Works fine') return '<td><span class="pill good">Works fine</span></td>';
+    if (v === 'Not marked') return '<td><span class="pill na">Not marked</span></td>';
+    return '<td class="dim">—</td>';
+  }
   if (v === 'Yes' || v === 'No' || v === 'NA') return `<td><span class="pill ${v === 'Yes' ? 'good' : v === 'No' ? 'bad' : 'na'}">${v}</span></td>`;
   if (col === 'Attendees' || col === 'Summary' || col === 'Meeting') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (['Team Member', 'Person', 'Owner', 'Metric', 'Source', 'Currency', 'Raised By'].includes(col)) return `<td class="l">${esc(v)}</td>`;
@@ -629,9 +621,16 @@ function spamView(v, note) {
   const sp = S.D.spam || { team: [], checks: {} }, edit = S.D.me && S.D.me.spam === 'edit';
   if (S.mode === 'day') {
     const day = sel()[0], got = sp.checks[day] || {};
-    const box = (m, k, on) => (edit ? `<label class="spamcb"><input type="checkbox" data-sm="${esc(m)}" data-sk="${k}" ${on ? 'checked' : ''}>${on ? 'Checked' : 'Not yet'}</label>` : `<span class="pill ${on ? 'good' : 'bad'}">${on ? 'Yes' : 'No'}</span>`);
-    v.innerHTML = `<div class="scroller"><table><thead><tr><th class="l">Team Member</th><th>Email Spam Checked${ic(HINTS['Email Spam Checked'])}</th><th>Phone Spam Checked${ic(HINTS['Phone Spam Checked'])}</th></tr></thead><tbody>${sp.team.map((m) => { const c = got[m]; return `<tr><td class="l">${esc(m)}</td><td>${box(m, 'email', c && c.email)}</td><td>${box(m, 'phone', c && c.phone)}</td></tr>`; }).join('')}</tbody></table></div>`;
-    if (edit) v.querySelectorAll('input[data-sm]').forEach((cb) => (cb.onchange = () => saveSpam(day, cb.dataset.sm, v)));
+    const cells = SPAM_COLS.map(([k, col, on, off, tone]) => `<th>${col}${ic(HINTS[col])}</th>`).join('');
+    const box = (m, [k, , on, off, tone], val) => (edit ? `<label class="spamcb ${tone}"><input type="checkbox" data-sm="${esc(m)}" data-sk="${k}" ${val ? 'checked' : ''}><span>${val ? on : off}</span></label>`
+      : k === 'email' || k === 'phone' ? `<span class="pill ${val ? 'good' : 'bad'}">${val ? 'Yes' : 'No'}</span>` : val ? `<span class="pill ${tone === 'red' ? 'bad' : 'good'}">${on}</span>` : '<span class="dim">—</span>');
+    v.innerHTML = `<div class="scroller"><table><thead><tr><th class="l">Team Member</th>${cells}</tr></thead><tbody>${sp.team.map((m) => { const c = got[m] || {}; return `<tr><td class="l">${esc(m)}</td>${SPAM_COLS.map((x) => `<td>${box(m, x, c[x[0]])}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div>`;
+    if (edit) v.querySelectorAll('input[data-sm]').forEach((cb) => (cb.onchange = () => {
+      // Spam Detected and Works Fine exclude each other: ticking one clears the other
+      const other = { spam: 'ok', ok: 'spam' }[cb.dataset.sk];
+      if (other && cb.checked) { const o = v.querySelector(`input[data-sm="${CSS.escape(cb.dataset.sm)}"][data-sk="${other}"]`); o.checked = false; }
+      saveSpam(day, cb.dataset.sm, v);
+    }));
     return;
   }
   // date range: read-only history, newest day first; days before the first saved check are left out
@@ -639,18 +638,26 @@ function spamView(v, note) {
   if (!first) { v.innerHTML = '<div class="empty"><b>No spam checks saved in these dates</b>Pick a single day to see (or tick) that day’s checks.</div>'; return; }
   const rows = [];
   for (let d = t > today ? today : t; d >= (f > first ? f : first); d = shift(d, -1))
-    for (const m of sp.team) { const c = (sp.checks[d] || {})[m]; rows.push({ Date: d, 'Team Member': m, 'Email Spam Checked': c && c.email ? 'Yes' : 'No', 'Phone Spam Checked': c && c.phone ? 'Yes' : 'No' }); }
+    for (const m of sp.team) { const c = (sp.checks[d] || {})[m]; rows.push({ Date: d, 'Team Member': m, 'Email Spam Checked': c && c.email ? 'Yes' : 'No', 'Phone Spam Checked': c && c.phone ? 'Yes' : 'No', ...verdict(c) }); }
   v.innerHTML = table('spam', rows);
   v.querySelectorAll('th[data-c]').forEach((th) => (th.onclick = (e) => { if (e.target.closest('.i')) return; const s = S.sort.spam; S.sort.spam = { col: th.dataset.c, dir: s && s.col === th.dataset.c && s.dir === 1 ? -1 : 1 }; render(); }));
   const full = rows.filter((r) => r['Email Spam Checked'] === 'Yes' && r['Phone Spam Checked'] === 'Yes').length;
   note.textContent = `${full} of ${rows.length} person-days fully checked (e-mail and phone)`; note.hidden = false;
 }
+// Spam Detected / Works Fine for the date-range history. Only one can be ticked, so the
+// ticked column names the result, the other shows a dash, and neither ticked reads "Not marked".
+const verdict = (c) => (c && c.spam ? { 'Spam Detected': 'Spam detected', 'Works Fine': '—' }
+  : c && c.ok ? { 'Spam Detected': '—', 'Works Fine': 'Works fine' }
+  : { 'Spam Detected': 'Not marked', 'Works Fine': 'Not marked' });
+// [stored key, column, ticked label, unticked label, colour]
+const SPAM_COLS = [['email', 'Email Spam Checked', 'Checked', 'Not yet', 'green'], ['phone', 'Phone Spam Checked', 'Checked', 'Not yet', 'green'], ['spam', 'Spam Detected', 'Spam detected', 'Spam detected', 'red'], ['ok', 'Works Fine', 'Works fine', 'Works fine', 'green']];
 // saves run one after another so two quick ticks can't overwrite each other
 let spamQ = Promise.resolve();
 function saveSpam(day, member, v) {
   const q = (k) => v.querySelector(`input[data-sm="${CSS.escape(member)}"][data-sk="${k}"]`);
-  const body = { date: day, member, email: q('email').checked, phone: q('phone').checked };
-  [q('email'), q('phone')].forEach((x) => { x.disabled = true; x.parentNode.lastChild.textContent = x.checked ? 'Checked' : 'Not yet'; });
+  const show = (k, val) => { const col = SPAM_COLS.find((x) => x[0] === k); q(k).checked = !!val; q(k).nextElementSibling.textContent = val ? col[2] : col[3]; };
+  const body = { date: day, member };
+  for (const [k] of SPAM_COLS) { body[k] = q(k).checked; show(k, body[k]); q(k).disabled = true; }
   spamQ = spamQ.then(async () => {
     const note = $('note');
     try {
@@ -658,24 +665,62 @@ function saveSpam(day, member, v) {
       const sp = S.D.spam; (sp.checks[day] = sp.checks[day] || {})[member] = check;
     } catch (err) {
       const old = ((S.D.spam.checks[day] || {})[member]) || {};
-      ['email', 'phone'].forEach((k) => { q(k).checked = !!old[k]; q(k).parentNode.lastChild.textContent = old[k] ? 'Checked' : 'Not yet'; });
+      for (const [k] of SPAM_COLS) show(k, old[k]);
       note.textContent = 'Could not save: ' + err.message; note.hidden = false;
     }
-    [q('email'), q('phone')].forEach((x) => (x.disabled = false));
+    for (const [k] of SPAM_COLS) q(k).disabled = false;
   });
 }
 
 function dashboard() {
+  const m = S.D.metrics.find((x) => x['Team Member'] === 'Team') || S.D.metrics[S.D.metrics.length - 1]; // 'Team' = everyone currently selected
+  const n = (k) => (typeof m[k] === 'number' ? m[k].toLocaleString() : esc(m[k]));
+  const pc = (v) => { const x = parseFloat(v); return isNaN(x) ? 0 : Math.max(0, Math.min(100, x)); };
+  const lbl = (t, tip) => `<div class="hl">${t}${ic(tip)}</div>`;
+
+  // 1. headline: the three numbers that matter most
+  const hero = `<div class="hero">
+    <div>${lbl('Closed Won', KPI_TIPS['Closed Won'])}<div class="hv">${n('Closed Won')}</div><div class="hs">deals closed in these dates</div></div>
+    <div>${lbl('Meetings Taken', KPI_TIPS['Meetings Taken'])}<div class="hv">${n('Meetings Taken')}</div><div class="hs">${(m['Post-Call Sent'] + m['Post-Call Pending']).toLocaleString()} recorded on Granola</div></div>
+    <div>${lbl('Close Rate', KPI_TIPS['Close Rate'])}<div class="hv">${n('Close Rate (of meetings)')}</div><div class="hs">of meetings · ${n('Close Rate (of contacts)')} of new contacts</div></div>
+  </div>`;
+
+  // 2. leads -> booked calls, overall and by source (same cohort: contacts created in these dates)
+  const LEAD_TIPS = {
+    all: 'Lead to Meeting: the share of all leads (including Meta) that booked a call.\nAll HubSpot contacts created in the selected dates, counted under the contact owner.\nBooked = the contact booked a call through HubSpot’s meetings tool (at any time so far), so recent contacts may still book later and raise this number.\nAll leads = Meta ads + Other sources.',
+    meta: 'New contacts whose HubSpot “partner” field contains “meta”: leads from Meta (Facebook / Instagram) instant forms.\nPercentage = Meta contacts who booked a call ÷ all Meta contacts created in the selected dates. Compare it with Other sources to judge Meta lead quality.',
+    other: 'Other Lead to Meeting: the share of leads excluding Meta that booked a call, i.e. organic leads that came from the website etc.\nThese are new contacts whose “partner” field does not contain “meta”: website, referrals, partners and every other source.\nPercentage = other-source contacts who booked a call ÷ all other-source contacts created in the selected dates.',
+  };
+  const row = (name, tipKey, contacts, booked, rate, sub) => `<div class="rrow${sub ? ' sub' : ''}">
+    <div class="nm"><b>${name}${ic(LEAD_TIPS[tipKey])}</b><small>${n(booked)} of ${n(contacts)} booked</small></div>
+    <div class="track"><i style="width:${pc(m[rate])}%"></i></div><div class="pc">${n(rate)}</div></div>`;
+  const leads = `<section class="sec"><h3>New leads → booked calls${ic('Of the HubSpot contacts created in the selected dates, the share who booked a call through HubSpot’s meetings tool. Split by lead source: Meta = the contact’s “partner” field contains “meta”.\nUse the (i) on each row for details.')}</h3>
+    <p>${n('Contacts')} new contacts in these dates</p>
+    ${row('All leads', 'all', 'Contacts', 'Booked Call', 'Lead-to-Meeting %')}
+    ${row('Meta ads', 'meta', 'Meta Contacts', 'Meta Booked Call', 'Meta Lead-to-Meeting %', true)}
+    ${row('Other sources', 'other', 'Other Contacts', 'Other Booked Call', 'Other Lead-to-Meeting %', true)}
+  </section>`;
+
+  // 3. follow-up hygiene: things that need action, with a status label (never colour alone)
+  const status = (v) => (Number(v) > 0 ? '<span class="pill warn">Needs action</span>' : '<span class="pill good">All clear</span>');
+  const follow = `<section class="sec"><h3>Follow-up${ic('Work still waiting on the team. “Needs action” shows when the count is above zero.')}</h3><p>What still needs doing</p><div class="tiles">
+    <div class="tile"><div>${lbl('Post-call pending', KPI_TIPS['Post-Call Pending'])}<div class="tv" style="margin-top:6px">${n('Post-Call Pending')}</div><div class="hs">${n('Post-Call Sent')} sent</div></div>${status(m['Post-Call Pending'])}</div>
+    <div class="tile"><div>${lbl('Overdue tasks', KPI_TIPS['Overdue Tasks'])}<div class="tv" style="margin-top:6px">${n('Overdue Tasks')}</div><div class="hs">right now, ignores the dates</div></div>${status(m['Overdue Tasks'])}</div>
+  </div></section>`;
+
+  // 4. call quality (Granola recordings)
   const d = Object.fromEntries(S.D.dashboard);
   const tot = d['Total Meetings'] || 0, over = d['Meetings 20+ Minutes'] || 0, under = d['Meetings Under 20 Minutes'] || 0, pm = d['Portal Mentioned'] || 0, pn = d['Portal Not Mentioned'] || 0;
-  if (!tot) return '<div class="empty"><b>No recorded meetings for this selection</b>Try another day, or choose a wider date range.</div>';
   const bar = (a, b) => `<div class="bar"><i class="a" style="width:${(a / ((a + b) || 1)) * 100}%"></i><i class="b" style="width:${(b / ((a + b) || 1)) * 100}%"></i></div>`;
-  const h = (t) => `<h3>${t}${ic(PANEL_TIPS[t])}</h3>`;
-  return `<div class="dash">
-    <div class="panel">${h('Total meetings')}<div class="big">${tot.toLocaleString()}</div><div class="dim">Recorded on Granola</div></div>
-    <div class="panel">${h('20+ minute compliance')}<div class="big">${esc(d['20+ Minute Compliance'])}</div>${bar(over, under)}<div class="legend"><span class="a">20+ min · ${over.toLocaleString()}</span><span class="b">Under 20 · ${under.toLocaleString()}</span></div></div>
-    <div class="panel">${h('Student portal mentioned')}<div class="big">${pm + pn ? Math.round((pm / (pm + pn)) * 1000) / 10 + '%' : '—'}</div>${bar(pm, pn)}<div class="legend"><span class="a">Mentioned · ${pm.toLocaleString()}</span><span class="b">Not mentioned · ${pn.toLocaleString()}</span></div></div>
-  </div>`;
+  const avg = m['Avg Duration (min)'] === '—' ? '—' : m['Avg Duration (min)'] + ' min';
+  const quality = `<section class="sec"><h3>Call quality${ic('How well the recorded (Granola) discovery calls follow the process: length, and whether the student portal was mentioned.')}</h3><p>${tot.toLocaleString()} calls recorded on Granola</p>${tot ? `<div class="qgrid">
+    <div class="q">${lbl('Recorded calls', PANEL_TIPS['Total meetings'])}<div class="tv">${tot.toLocaleString()}</div><div class="hs">on Granola</div></div>
+    <div class="q">${lbl('Avg call length', KPI_TIPS['Avg Call Duration'])}<div class="tv">${esc(avg)}</div><div class="hs">target ${TARGETS['Average Call Duration'] ?? 20}+ min</div></div>
+    <div class="q">${lbl('20+ min calls', PANEL_TIPS['20+ minute compliance'])}<div class="tv">${esc(d['20+ Minute Compliance'])}</div>${bar(over, under)}<div class="legend"><span class="a">20+ · ${over.toLocaleString()}</span><span class="b">Under 20 · ${under.toLocaleString()}</span></div></div>
+    <div class="q">${lbl('Portal mentioned', PANEL_TIPS['Student portal mentioned'])}<div class="tv">${pm + pn ? Math.round((pm / (pm + pn)) * 1000) / 10 + '%' : '—'}</div>${bar(pm, pn)}<div class="legend"><span class="a">Yes · ${pm.toLocaleString()}</span><span class="b">No · ${pn.toLocaleString()}</span></div></div>
+  </div>` : '<div class="dempty">No recorded calls in these dates. Try another day or a wider range.</div>'}</section>`;
+
+  return `<div class="dboard">${hero}<div class="dgrid">${leads}${follow}</div>${quality}</div>`;
 }
 
 // ---------- discrepancies: raise (anyone); Yash accepts / rejects ----------

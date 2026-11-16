@@ -19,7 +19,9 @@ test('Guillermo edits; everyone else views', () => {
 test('saving a check and reading it back by date range', async () => {
   const rec = await spam.set(GUILLERMO, { date: '2026-11-16', member: 'Paula Jimenez', email: true, phone: false });
   assert.deepEqual([rec.email, rec.phone, rec.by], [true, false, 'Guillermo Chavarria']);
-  await spam.set(GUILLERMO, { date: '2026-11-15', member: 'Diego Alvarez', email: true, phone: true });
+  await spam.set(GUILLERMO, { date: '2026-11-15', member: 'Diego Alvarez', email: true, phone: true, spam: true });
+  const diego = (await spam.list('2026-11-15', '2026-11-15')).checks['2026-11-15']['Diego Alvarez'];
+  assert.deepEqual([diego.spam, diego.ok], [true, false]);
   const r = await spam.list('2026-11-16', '2026-11-16');
   assert.deepEqual(Object.keys(r.checks), ['2026-11-16']);
   assert.equal(r.checks['2026-11-16']['Paula Jimenez'].email, true);
@@ -36,4 +38,5 @@ test('viewers cannot save; bad input is refused', async () => {
   await assert.rejects(spam.set(YASH, { date: '2026-11-16', member: 'Paula Jimenez', email: true }), { status: 403 });
   await assert.rejects(spam.set(GUILLERMO, { date: 'yesterday', member: 'Paula Jimenez' }), { status: 400 });
   await assert.rejects(spam.set(GUILLERMO, { date: '2026-11-16', member: 'Someone Else' }), { status: 400 });
+  await assert.rejects(spam.set(GUILLERMO, { date: '2026-11-16', member: 'Paula Jimenez', spam: true, ok: true }), { status: 400 }); // can't be both
 });
