@@ -37,6 +37,8 @@
   .spamcb:has(input:checked) { border-color:var(--good); color:var(--good) }
   .spamcb input { width:18px; height:18px; margin:0; accent-color:var(--good); cursor:pointer }
   .spamcb input:disabled { cursor:progress }
+  .spamcb.red input { accent-color:var(--bad) } .spamcb.red:has(input:checked) { border-color:var(--bad); color:var(--bad); background:var(--bad-bg) }
+  .spamcb.green:has(input:checked) { background:var(--good-bg) }
 
   /* ---------- controls (LMS-style chips) ---------- */
   .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
@@ -357,7 +359,7 @@ const HINTS = {
   'Raised': 'Date the discrepancy was raised.', 'Reason': 'Why the deal should count.', 'Proof': 'Link given as proof (recording, receipt …).', 'Raised By': 'Who raised it.',
   'Resolution': 'Who resolved it, and their note.', 'Comments': 'Messages in the discrepancy’s conversation.', 'Files': 'Screenshots and files attached to it and its comments.', 'Thread': 'Open the discrepancy: details, attachments and the conversation (and Accept / Reject for Yash).',
 };
-Object.assign(HINTS, { 'Email Spam Checked': 'Yes = Guillermo marked this person’s e-mail as checked for spam on that day.', 'Phone Spam Checked': 'Yes = Guillermo marked this person’s phone number as checked for spam on that day.' });
+Object.assign(HINTS, { 'Email Spam Checked': 'Yes = Guillermo marked this person’s e-mail as checked for spam on that day.', 'Phone Spam Checked': 'Yes = Guillermo marked this person’s phone number as checked for spam on that day.', 'Spam Detected': 'Red = the check found this person’s e-mail or phone flagged as spam on that day.', 'Works Fine': 'Green = the check found this person’s e-mail and phone working fine on that day.' });
 const hint = (c) => HINTS[c] || (c.startsWith('Moved to ') ? `Deals that entered the “${c.slice(9)}” stage in the selected dates (a new deal counts as entering its first stage).` : c.startsWith('Open now: ') ? `Deals currently sitting in the “${c.slice(10)}” stage, whatever the dates.` : '');
 const KPI_TIPS = {
   'Closed Won': 'Deals that reached the Sales Pipeline’s Closed Won stage with a close date in the selected dates.\nThe date is the close date in the deal owner’s own time zone.\nThis is HubSpot’s count: a win still needs proof of call and payment (see Closed Won Check) before it earns commission.',
@@ -584,6 +586,12 @@ function cell(col, v, r = {}) {
   if (col === 'Verified Wins' && typeof v === 'number' && v > 0) return `<td><button class="mini eye ok" data-ver="${esc(r.Month + '|' + r['Team Member'])}" aria-label="View the ${v} verified wins">${EYE}${v}</button></td>`;
   if (col === 'Details' || col === 'Resolution' || col === 'Reason' || col === 'Client') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (col === 'Granola Note') return `<td class="l">${v ? `<a class="open" href="${esc(v)}" target="_blank" rel="noopener">Open ↗</a>` : '<span class="dim">—</span>'}</td>`;
+  if (col === 'Spam Detected' || col === 'Works Fine') {
+    if (v === 'Spam detected') return '<td><span class="pill bad">Spam detected</span></td>';
+    if (v === 'Works fine') return '<td><span class="pill good">Works fine</span></td>';
+    if (v === 'Not marked') return '<td><span class="pill na">Not marked</span></td>';
+    return '<td class="dim">—</td>';
+  }
   if (v === 'Yes' || v === 'No' || v === 'NA') return `<td><span class="pill ${v === 'Yes' ? 'good' : v === 'No' ? 'bad' : 'na'}">${v}</span></td>`;
   if (col === 'Attendees' || col === 'Summary' || col === 'Meeting') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (['Team Member', 'Person', 'Owner', 'Metric', 'Source', 'Currency', 'Raised By'].includes(col)) return `<td class="l">${esc(v)}</td>`;
@@ -613,9 +621,16 @@ function spamView(v, note) {
   const sp = S.D.spam || { team: [], checks: {} }, edit = S.D.me && S.D.me.spam === 'edit';
   if (S.mode === 'day') {
     const day = sel()[0], got = sp.checks[day] || {};
-    const box = (m, k, on) => (edit ? `<label class="spamcb"><input type="checkbox" data-sm="${esc(m)}" data-sk="${k}" ${on ? 'checked' : ''}>${on ? 'Checked' : 'Not yet'}</label>` : `<span class="pill ${on ? 'good' : 'bad'}">${on ? 'Yes' : 'No'}</span>`);
-    v.innerHTML = `<div class="scroller"><table><thead><tr><th class="l">Team Member</th><th>Email Spam Checked${ic(HINTS['Email Spam Checked'])}</th><th>Phone Spam Checked${ic(HINTS['Phone Spam Checked'])}</th></tr></thead><tbody>${sp.team.map((m) => { const c = got[m]; return `<tr><td class="l">${esc(m)}</td><td>${box(m, 'email', c && c.email)}</td><td>${box(m, 'phone', c && c.phone)}</td></tr>`; }).join('')}</tbody></table></div>`;
-    if (edit) v.querySelectorAll('input[data-sm]').forEach((cb) => (cb.onchange = () => saveSpam(day, cb.dataset.sm, v)));
+    const cells = SPAM_COLS.map(([k, col, on, off, tone]) => `<th>${col}${ic(HINTS[col])}</th>`).join('');
+    const box = (m, [k, , on, off, tone], val) => (edit ? `<label class="spamcb ${tone}"><input type="checkbox" data-sm="${esc(m)}" data-sk="${k}" ${val ? 'checked' : ''}><span>${val ? on : off}</span></label>`
+      : k === 'email' || k === 'phone' ? `<span class="pill ${val ? 'good' : 'bad'}">${val ? 'Yes' : 'No'}</span>` : val ? `<span class="pill ${tone === 'red' ? 'bad' : 'good'}">${on}</span>` : '<span class="dim">—</span>');
+    v.innerHTML = `<div class="scroller"><table><thead><tr><th class="l">Team Member</th>${cells}</tr></thead><tbody>${sp.team.map((m) => { const c = got[m] || {}; return `<tr><td class="l">${esc(m)}</td>${SPAM_COLS.map((x) => `<td>${box(m, x, c[x[0]])}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div>`;
+    if (edit) v.querySelectorAll('input[data-sm]').forEach((cb) => (cb.onchange = () => {
+      // Spam Detected and Works Fine exclude each other: ticking one clears the other
+      const other = { spam: 'ok', ok: 'spam' }[cb.dataset.sk];
+      if (other && cb.checked) { const o = v.querySelector(`input[data-sm="${CSS.escape(cb.dataset.sm)}"][data-sk="${other}"]`); o.checked = false; }
+      saveSpam(day, cb.dataset.sm, v);
+    }));
     return;
   }
   // date range: read-only history, newest day first; days before the first saved check are left out
@@ -623,18 +638,26 @@ function spamView(v, note) {
   if (!first) { v.innerHTML = '<div class="empty"><b>No spam checks saved in these dates</b>Pick a single day to see (or tick) that day’s checks.</div>'; return; }
   const rows = [];
   for (let d = t > today ? today : t; d >= (f > first ? f : first); d = shift(d, -1))
-    for (const m of sp.team) { const c = (sp.checks[d] || {})[m]; rows.push({ Date: d, 'Team Member': m, 'Email Spam Checked': c && c.email ? 'Yes' : 'No', 'Phone Spam Checked': c && c.phone ? 'Yes' : 'No' }); }
+    for (const m of sp.team) { const c = (sp.checks[d] || {})[m]; rows.push({ Date: d, 'Team Member': m, 'Email Spam Checked': c && c.email ? 'Yes' : 'No', 'Phone Spam Checked': c && c.phone ? 'Yes' : 'No', ...verdict(c) }); }
   v.innerHTML = table('spam', rows);
   v.querySelectorAll('th[data-c]').forEach((th) => (th.onclick = (e) => { if (e.target.closest('.i')) return; const s = S.sort.spam; S.sort.spam = { col: th.dataset.c, dir: s && s.col === th.dataset.c && s.dir === 1 ? -1 : 1 }; render(); }));
   const full = rows.filter((r) => r['Email Spam Checked'] === 'Yes' && r['Phone Spam Checked'] === 'Yes').length;
   note.textContent = `${full} of ${rows.length} person-days fully checked (e-mail and phone)`; note.hidden = false;
 }
+// Spam Detected / Works Fine for the date-range history. Only one can be ticked, so the
+// ticked column names the result, the other shows a dash, and neither ticked reads "Not marked".
+const verdict = (c) => (c && c.spam ? { 'Spam Detected': 'Spam detected', 'Works Fine': '—' }
+  : c && c.ok ? { 'Spam Detected': '—', 'Works Fine': 'Works fine' }
+  : { 'Spam Detected': 'Not marked', 'Works Fine': 'Not marked' });
+// [stored key, column, ticked label, unticked label, colour]
+const SPAM_COLS = [['email', 'Email Spam Checked', 'Checked', 'Not yet', 'green'], ['phone', 'Phone Spam Checked', 'Checked', 'Not yet', 'green'], ['spam', 'Spam Detected', 'Spam detected', 'Spam detected', 'red'], ['ok', 'Works Fine', 'Works fine', 'Works fine', 'green']];
 // saves run one after another so two quick ticks can't overwrite each other
 let spamQ = Promise.resolve();
 function saveSpam(day, member, v) {
   const q = (k) => v.querySelector(`input[data-sm="${CSS.escape(member)}"][data-sk="${k}"]`);
-  const body = { date: day, member, email: q('email').checked, phone: q('phone').checked };
-  [q('email'), q('phone')].forEach((x) => { x.disabled = true; x.parentNode.lastChild.textContent = x.checked ? 'Checked' : 'Not yet'; });
+  const show = (k, val) => { const col = SPAM_COLS.find((x) => x[0] === k); q(k).checked = !!val; q(k).nextElementSibling.textContent = val ? col[2] : col[3]; };
+  const body = { date: day, member };
+  for (const [k] of SPAM_COLS) { body[k] = q(k).checked; show(k, body[k]); q(k).disabled = true; }
   spamQ = spamQ.then(async () => {
     const note = $('note');
     try {
@@ -642,10 +665,10 @@ function saveSpam(day, member, v) {
       const sp = S.D.spam; (sp.checks[day] = sp.checks[day] || {})[member] = check;
     } catch (err) {
       const old = ((S.D.spam.checks[day] || {})[member]) || {};
-      ['email', 'phone'].forEach((k) => { q(k).checked = !!old[k]; q(k).parentNode.lastChild.textContent = old[k] ? 'Checked' : 'Not yet'; });
+      for (const [k] of SPAM_COLS) show(k, old[k]);
       note.textContent = 'Could not save: ' + err.message; note.hidden = false;
     }
-    [q('email'), q('phone')].forEach((x) => (x.disabled = false));
+    for (const [k] of SPAM_COLS) q(k).disabled = false;
   });
 }
 
