@@ -664,9 +664,9 @@ function dashboard() {
 
   // 2. leads -> booked calls, overall and by source (same cohort: contacts created in these dates)
   const LEAD_TIPS = {
-    all: 'All HubSpot contacts created in the selected dates, counted under the contact owner.\nBooked = the contact booked a call through HubSpot’s meetings tool (at any time so far), so recent contacts may still book later and raise this number.\nAll leads = Meta ads + Other sources.',
+    all: 'Lead to Meeting: the share of all leads (including Meta) that booked a call.\nAll HubSpot contacts created in the selected dates, counted under the contact owner.\nBooked = the contact booked a call through HubSpot’s meetings tool (at any time so far), so recent contacts may still book later and raise this number.\nAll leads = Meta ads + Other sources.',
     meta: 'New contacts whose HubSpot “partner” field contains “meta”: leads from Meta (Facebook / Instagram) instant forms.\nPercentage = Meta contacts who booked a call ÷ all Meta contacts created in the selected dates. Compare it with Other sources to judge Meta lead quality.',
-    other: 'New contacts whose “partner” field does not contain “meta”: website, referrals, partners and every other source.\nPercentage = other-source contacts who booked a call ÷ all other-source contacts created in the selected dates.',
+    other: 'Other Lead to Meeting: the share of leads excluding Meta that booked a call, i.e. organic leads that came from the website etc.\nThese are new contacts whose “partner” field does not contain “meta”: website, referrals, partners and every other source.\nPercentage = other-source contacts who booked a call ÷ all other-source contacts created in the selected dates.',
   };
   const row = (name, tipKey, contacts, booked, rate, sub) => `<div class="rrow${sub ? ' sub' : ''}">
     <div class="nm"><b>${name}${ic(LEAD_TIPS[tipKey])}</b><small>${n(booked)} of ${n(contacts)} booked</small></div>
