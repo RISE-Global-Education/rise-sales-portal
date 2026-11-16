@@ -8,6 +8,9 @@
     },
     "api/disputes.js": {
       "maxDuration": 30
+    },
+    "api/spam.js": {
+      "maxDuration": 30
     }
   },
   "crons": [

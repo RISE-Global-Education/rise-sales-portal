@@ -31,8 +31,12 @@
   /* ---------- (i) info icon + tooltip ---------- */
   .i { display:inline-grid; place-items:center; width:15px; height:15px; margin-left:6px; border-radius:50%; border:1px solid var(--mute); color:var(--mute); font:700 10px/1 Georgia, serif; font-style:italic; cursor:help; vertical-align:middle; flex:none; text-transform:none; letter-spacing:0 }
   .i:hover, .i:focus-visible { background:var(--accent); border-color:var(--accent); color:var(--accent-ink) }
-  #tip { position:fixed; z-index:100; max-width:300px; padding:8px 11px; border-radius:9px; background:#1D1D1F; color:#fff; font:12.5px/1.4 -apple-system, "Segoe UI", sans-serif; font-weight:400; text-transform:none; letter-spacing:0; box-shadow:var(--pop); pointer-events:none; opacity:0; transform:translateY(2px); transition:opacity .12s, transform .12s; white-space:normal; text-align:left }
+  #tip { position:fixed; z-index:100; max-width:340px; padding:8px 11px; border-radius:9px; background:#1D1D1F; color:#fff; font:12.5px/1.4 -apple-system, "Segoe UI", sans-serif; font-weight:400; text-transform:none; letter-spacing:0; box-shadow:var(--pop); pointer-events:none; opacity:0; transform:translateY(2px); transition:opacity .12s, transform .12s; white-space:pre-line; text-align:left }
   #tip.on { opacity:1; transform:none }
+  .spamcb { display:inline-flex; align-items:center; gap:10px; padding:6px 14px 6px 10px; border:1px solid var(--line); border-radius:999px; cursor:pointer; font-weight:500; white-space:nowrap }
+  .spamcb:has(input:checked) { border-color:var(--good); color:var(--good) }
+  .spamcb input { width:18px; height:18px; margin:0; accent-color:var(--good); cursor:pointer }
+  .spamcb input:disabled { cursor:progress }
 
   /* ---------- controls (LMS-style chips) ---------- */
   .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap }
@@ -275,7 +279,7 @@ function setOffsets(){ const r=document.documentElement.style, t=document.queryS
 addEventListener("resize", setOffsets); addEventListener("load", setOffsets); new MutationObserver(setOffsets).observe(document.documentElement,{childList:true,subtree:true}); setOffsets();
 document.getElementById('menuBtn').onclick = () => { document.body.classList.toggle('nav'); document.getElementById('menuBtn').textContent = document.body.classList.contains('nav') ? '✕' : '☰'; };
 document.getElementById('scrim').onclick = () => { document.body.classList.remove('nav'); document.getElementById('menuBtn').textContent = '☰'; };
-const COPY = { dashboard: ['How well recorded meetings follow the process: Granola recording, 20+ minute calls and portal mentions.', 'Use the Team member filter and the date picker to change what you see.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Open one to read and reply in its conversation (with screenshots). Yash accepts or rejects it there; an accepted deal moves to Verified Wins.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
+const COPY = { dashboard: ['How well recorded meetings follow the process: Granola recording, 20+ minute calls and portal mentions.', 'Use the Team member filter and the date picker to change what you see.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], spam: ['Daily spam check of each team member’s e-mail and phone. Guillermo ticks the boxes; everyone else can view.', 'Pick one day to see (or, for Guillermo, tick) that day’s checks. Pick a date range to see the history.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Open one to read and reply in its conversation (with screenshots). Yash accepts or rejects it there; an accepted deal moves to Verified Wins.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', tip: 'Granola meeting compliance: how many calls were recorded, how many ran 20+ minutes, and how many mentioned the student portal.' },
   { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
@@ -285,6 +289,7 @@ const TABS = [
   { id: 'pipeline', label: 'Deal Pipeline', tip: 'Deals moving between Sales Pipeline stages in the selected dates, and how many deals are open in each stage right now.' },
   { id: 'verify', label: 'Closed Won Check', tip: 'Each Closed Won deal checked for proof of conversation (Granola) and proof of payment (Airtable Follow Up Status = Client).' },
   { id: 'commission', label: 'Commission Calculator', tip: 'Monthly commission per rep from verified wins only, using each rep’s commission rule.' },
+  { id: 'spam', label: 'Spam Check', tip: 'Daily check of whether each team member’s e-mail and phone were checked for spam. Only Guillermo can tick the boxes; everyone else can view.' },
   { id: 'disputes', label: 'Discrepancies', tip: 'Discrepancies raised on the portal, each with a conversation between Yash and the rep. Yash accepts or rejects them.' },
 ];
 let TARGETS = {}; // loaded from the server (lib/config.js) with the data
@@ -340,20 +345,26 @@ const HINTS = {
   'Raised': 'Date the discrepancy was raised.', 'Reason': 'Why the deal should count.', 'Proof': 'Link given as proof (recording, receipt …).', 'Raised By': 'Who raised it.',
   'Resolution': 'Who resolved it, and their note.', 'Comments': 'Messages in the discrepancy’s conversation.', 'Files': 'Screenshots and files attached to it and its comments.', 'Thread': 'Open the discrepancy: details, attachments and the conversation (and Accept / Reject for Yash).',
 };
+Object.assign(HINTS, { 'Email Spam Checked': 'Yes = Guillermo marked this person’s e-mail as checked for spam on that day.', 'Phone Spam Checked': 'Yes = Guillermo marked this person’s phone number as checked for spam on that day.' });
 const hint = (c) => HINTS[c] || (c.startsWith('Moved to ') ? `Deals that entered the “${c.slice(9)}” stage in the selected dates (a new deal counts as entering its first stage).` : c.startsWith('Open now: ') ? `Deals currently sitting in the “${c.slice(10)}” stage, whatever the dates.` : '');
 const KPI_TIPS = {
-  'Closed Won': 'Deals that reached the Sales Pipeline’s Closed Won stage with a close date in the selected dates.',
-  'Meetings Taken': 'Meetings recorded on Granola, or where the post-call sequence was sent through HubSpot.',
-  'New Contacts': 'HubSpot contacts created in the selected dates.', 'Meta Contacts': 'Contacts whose HubSpot “partner” field contains “meta” (Meta ads instant forms).', 'Meta Lead → Meeting': 'Share of Meta contacts who booked a call.', 'Other Contacts': 'Contacts whose “partner” field does not contain “meta”.', 'Other Lead → Meeting': 'Share of other-source contacts who booked a call.', 'Lead → Meeting': 'Share of those new contacts who booked a call.',
-  'Close Rate': 'Closed Won deals ÷ meetings taken (the second figure is Closed Won ÷ new contacts).',
-  'Post-Call Pending': 'Recorded calls where the post-call sequence hasn’t been sent yet.',
-  'Overdue Tasks': 'Tasks that are overdue right now: not completed and past their due time in HubSpot. Not affected by the selected dates.',
-  'Avg Call Duration': 'Average Granola transcript length (first to last spoken line).',
+  'Closed Won': 'Deals that reached the Sales Pipeline’s Closed Won stage with a close date in the selected dates.\nThe date is the close date in the deal owner’s own time zone.\nThis is HubSpot’s count: a win still needs proof of call and payment (see Closed Won Check) before it earns commission.\nSmall text: meetings taken in the same dates.',
+  'Meetings Taken': 'Discovery calls that actually happened in the selected dates.\nA meeting counts if it was recorded on Granola, or if the post-call sequence was sent through HubSpot within 7 days of it.\nCancelled, rescheduled and future meetings, interviews and internal calls are left out.\nSmall text: how many of them were recorded on Granola.',
+  'New Contacts': 'HubSpot contacts created in the selected dates, counted under the contact owner.\nSmall text: how many of these contacts have booked a call through HubSpot’s meetings tool (at any time so far).',
+  'Lead → Meeting': 'Booked a call ÷ new contacts, as a percentage.\nOnly contacts created in the selected dates are counted, so recent contacts may still book later and raise this number.',
+  'Meta Contacts': 'New contacts whose HubSpot “partner” field contains “meta”: leads from Meta (Facebook / Instagram) instant forms.\nSmall text: how many of them booked a call.',
+  'Meta Lead → Meeting': 'Meta contacts who booked a call ÷ all Meta contacts created in the selected dates.\nUse it to compare Meta lead quality with the other sources.',
+  'Other Contacts': 'New contacts whose “partner” field does not contain “meta” (website, referrals, partners and every other source).\nNew Contacts = Meta Contacts + Other Contacts.',
+  'Other Lead → Meeting': 'Other-source contacts who booked a call ÷ all other-source contacts created in the selected dates.',
+  'Close Rate': 'Closed Won deals ÷ meetings taken in the selected dates.\nSmall text: Closed Won ÷ new contacts.\nDeals and meetings are counted by their own dates, so a deal closed today from last week’s call still counts; short ranges can look high or low.',
+  'Post-Call Pending': 'Granola-recorded calls where the HubSpot post-call sequence has not been sent to the contact yet.\nA sequence sent within 7 days after the call counts as sent.\nSmall text: recorded calls whose sequence was sent.',
+  'Overdue Tasks': 'HubSpot tasks that are overdue right now: not completed and past their due time.\nThis is a live count and does not change with the selected dates or the Lead country filter.',
+  'Avg Call Duration': 'Average length of the Granola-recorded calls in the selected dates.\nLength = first to last spoken line of the transcript, not the calendar slot. Calls without a transcript are skipped.\nSmall text: recorded calls where “portal” was mentioned.',
 };
 const PANEL_TIPS = {
-  'Total meetings': 'Number of Granola notes (recorded calls) in the selected dates.',
-  '20+ minute compliance': 'Share of recorded calls whose transcript ran 20 minutes or more. Green = 20+ min, gold = shorter.',
-  'Student portal mentioned': 'Share of recorded calls where “portal” appears in the summary or transcript.',
+  'Total meetings': 'Number of Granola notes (recorded discovery calls) in the selected dates.\nIncludes recorded calls that have no matching HubSpot meeting (e.g. ad-hoc calls).\nMeetings that were only followed up with a post-call sequence are not in this number, so it can be lower than Meetings Taken.',
+  '20+ minute compliance': 'Share of recorded calls whose transcript ran 20 minutes or more (first to last spoken line).\nGreen = 20+ min, gold = under 20 min.\nThe percentage is out of all recorded calls, so a call with no transcript counts against it (but is not shown in either bar).',
+  'Student portal mentioned': 'Share of recorded calls where the word “portal” appears in the Granola summary or transcript.\nGreen = mentioned, gold = not mentioned.\nIt is a simple word match, so “portal” must actually be said or written; synonyms are not counted.',
 };
 const COLORS = ['#1C7C54', '#2E7D5B', '#5B7A2B', '#3F6B52', '#7A4A24', '#8A3B5E', '#4F6B2F', '#6B5B2A', '#2A5C45'];
 
@@ -512,7 +523,7 @@ function render() {
   $('dot').classList.toggle('old', (Date.now() - Date.parse(D.updatedAt)) / 36e5 > 30);
 
   // sidebar = the views (like the RISE portal's menu); the rep is a filter next to the date
-  const ICONS = { compliance: '<path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>', dashboard: '<path d="M4 13h6V4H4zM14 20h6V11h-6zM14 4h6v4h-6zM4 17h6v3H4z"/>', daily: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>', tracker: '<path d="M4 6h16M4 12h16M4 18h10"/>', metrics: '<path d="M5 20V10M12 20V4M19 20v-7"/>', pipeline: '<path d="M4 5h16l-6 7v6l-4 2v-8z"/>', verify: '<path d="M4 12l5 5L20 6"/>', commission: '<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"/>', disputes: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/>' };
+  const ICONS = { compliance: '<path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>', dashboard: '<path d="M4 13h6V4H4zM14 20h6V11h-6zM14 4h6v4h-6zM4 17h6v3H4z"/>', daily: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>', tracker: '<path d="M4 6h16M4 12h16M4 18h10"/>', metrics: '<path d="M5 20V10M12 20V4M19 20v-7"/>', pipeline: '<path d="M4 5h16l-6 7v6l-4 2v-8z"/>', verify: '<path d="M4 12l5 5L20 6"/>', commission: '<circle cx="12" cy="12" r="9"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .8-3 2s1.3 1.7 3 2 3 .8 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6.5v11"/>', spam: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>', disputes: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/>' };
   $('rail').innerHTML = TABS.map((x) => `<button class="person nav-item" data-t="${x.id}" ${x.id === S.tab ? 'aria-current="true"' : ''}><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[x.id] || ''}</svg><span class="nm">${x.label}</span>${ic(x.tip).replace(' tabindex="0"', '')}</button>`).join('');
   $('rail').querySelectorAll('.nav-item').forEach((b) => (b.onclick = () => { S.tab = b.dataset.t; store.set('sp.tab', S.tab); document.body.classList.remove('nav'); render(); window.scrollTo(0, 0); }));
 
@@ -525,7 +536,7 @@ function render() {
   $('scopeTip').textContent = 'i';
   $('scopeSub').textContent = COPY[cur.id][0];
   $('hint').textContent = COPY[cur.id][1];
-  $('toolbar').style.display = S.tab === 'dashboard' ? 'none' : 'flex';
+  $('toolbar').style.display = S.tab === 'dashboard' || (S.tab === 'spam' && S.mode === 'day') ? 'none' : 'flex';
   $('raiseBtn').classList.toggle('hide', S.tab !== 'disputes');
   if (D.me) {
     $('sideFoot').innerHTML = `<div class="av">${esc(initials(D.me.name))}</div><div class="who"><b>${esc(D.me.name)}</b><small>${esc(D.me.email)}${D.me.resolver ? ' · resolves discrepancies' : ''}</small><div class="links"><button id="outBtn">Sign out</button></div></div>`;
@@ -538,6 +549,7 @@ function render() {
   const note = $('note'); note.hidden = true;
   const v = $('view');
   if (S.tab === 'dashboard') v.innerHTML = dashboard();
+  else if (S.tab === 'spam') spamView(v, note);
   else {
     const rows = { compliance: D.compliance, daily: D.daily, tracker: D.tracker, metrics: D.metrics, pipeline: D.pipeline, verify: D.verify, commission: D.commission, disputes: D.disputes }[S.tab];
     v.innerHTML = rows && rows.length ? table(S.tab, rows) : S.tab === 'disputes' ? '<div class="empty"><b>No discrepancies raised</b>Raise one from a deal in Closed Won Check, or with “Raise a discrepancy”.</div>' : '<div class="empty"><b>No activity for this selection</b>Try another day, or choose a wider date range.</div>';
@@ -610,6 +622,47 @@ function table(id, rows) {
   const head = cols.map((c, i) => `<th data-c="${esc(c)}" class="${i === 0 || left.includes(c) ? 'l' : ''} ${s && s.col === c ? 'sorted' : ''}">${esc(c)}${ic(hint(c))}<span class="ar">${s && s.col === c ? (s.dir === 1 ? '↑' : '↓') : '↕'}</span>${TARGETS[c] != null ? `<small>target ${TARGETS[c]}${c === 'Average Call Duration' ? ' min' : '%'}+</small>` : ''}</th>`).join('');
   if (q && !body.some((r) => !isTot(r))) return '<div class="empty"><b>No matches</b>Nothing in this table matches “' + esc(S.q) + '”.</div>';
   return `<div class="scroller"><table><thead><tr>${head}</tr></thead><tbody>${body.map((r) => `<tr class="${isTot(r) ? 'team' : ''}">${cols.map((c) => cell(c, r[c], r)).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+// ---------- Spam Check: Guillermo ticks e-mail / phone per team member per day; everyone else views ----------
+function spamView(v, note) {
+  const sp = S.D.spam || { team: [], checks: {} }, edit = S.D.me && S.D.me.spam === 'edit';
+  if (S.mode === 'day') {
+    const day = sel()[0], got = sp.checks[day] || {};
+    const box = (m, k, on) => (edit ? `<label class="spamcb"><input type="checkbox" data-sm="${esc(m)}" data-sk="${k}" ${on ? 'checked' : ''}>${on ? 'Checked' : 'Not yet'}</label>` : `<span class="pill ${on ? 'good' : 'bad'}">${on ? 'Yes' : 'No'}</span>`);
+    v.innerHTML = `<div class="scroller"><table><thead><tr><th class="l">Team Member</th><th>Email Spam Checked${ic(HINTS['Email Spam Checked'])}</th><th>Phone Spam Checked${ic(HINTS['Phone Spam Checked'])}</th></tr></thead><tbody>${sp.team.map((m) => { const c = got[m]; return `<tr><td class="l">${esc(m)}</td><td>${box(m, 'email', c && c.email)}</td><td>${box(m, 'phone', c && c.phone)}</td></tr>`; }).join('')}</tbody></table></div>`;
+    if (edit) v.querySelectorAll('input[data-sm]').forEach((cb) => (cb.onchange = () => saveSpam(day, cb.dataset.sm, v)));
+    return;
+  }
+  // date range: read-only history, newest day first; days before the first saved check are left out
+  const [f, t] = sel(), first = Object.keys(sp.checks).sort()[0];
+  if (!first) { v.innerHTML = '<div class="empty"><b>No spam checks saved in these dates</b>Pick a single day to see (or tick) that day’s checks.</div>'; return; }
+  const rows = [];
+  for (let d = t > today ? today : t; d >= (f > first ? f : first); d = shift(d, -1))
+    for (const m of sp.team) { const c = (sp.checks[d] || {})[m]; rows.push({ Date: d, 'Team Member': m, 'Email Spam Checked': c && c.email ? 'Yes' : 'No', 'Phone Spam Checked': c && c.phone ? 'Yes' : 'No' }); }
+  v.innerHTML = table('spam', rows);
+  v.querySelectorAll('th[data-c]').forEach((th) => (th.onclick = (e) => { if (e.target.closest('.i')) return; const s = S.sort.spam; S.sort.spam = { col: th.dataset.c, dir: s && s.col === th.dataset.c && s.dir === 1 ? -1 : 1 }; render(); }));
+  const full = rows.filter((r) => r['Email Spam Checked'] === 'Yes' && r['Phone Spam Checked'] === 'Yes').length;
+  note.textContent = `${full} of ${rows.length} person-days fully checked (e-mail and phone)`; note.hidden = false;
+}
+// saves run one after another so two quick ticks can't overwrite each other
+let spamQ = Promise.resolve();
+function saveSpam(day, member, v) {
+  const q = (k) => v.querySelector(`input[data-sm="${CSS.escape(member)}"][data-sk="${k}"]`);
+  const body = { date: day, member, email: q('email').checked, phone: q('phone').checked };
+  [q('email'), q('phone')].forEach((x) => { x.disabled = true; x.parentNode.lastChild.textContent = x.checked ? 'Checked' : 'Not yet'; });
+  spamQ = spamQ.then(async () => {
+    const note = $('note');
+    try {
+      const { check } = await api('/api/spam', body);
+      const sp = S.D.spam; (sp.checks[day] = sp.checks[day] || {})[member] = check;
+    } catch (err) {
+      const old = ((S.D.spam.checks[day] || {})[member]) || {};
+      ['email', 'phone'].forEach((k) => { q(k).checked = !!old[k]; q(k).parentNode.lastChild.textContent = old[k] ? 'Checked' : 'Not yet'; });
+      note.textContent = 'Could not save: ' + err.message; note.hidden = false;
+    }
+    [q('email'), q('phone')].forEach((x) => (x.disabled = false));
+  });
 }
 
 function dashboard() {
