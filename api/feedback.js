@@ -6,6 +6,7 @@ const feedback = require('../lib/feedback');
 // GET                                   -> { people, items }
 // POST { action: 'give', rep, text }    givers only                    -> { item }
 // POST { action: 'comment', id, text }  the feedback's sales person / givers -> { item, comment }
+// POST { action: 'edit', id, comment?, text }  the person who wrote it -> { item }   (edits are kept in its history)
 // POST { action: 'delete', id }         the giver who wrote it          -> { ok: true }
 // POST { action: 'upload', name, type, data(base64) }  one attachment  -> { file }   (then pass files: [ids] to give / comment)
 // GET  ?file=<id>                       an attachment, if you can see its feedback
@@ -30,6 +31,7 @@ module.exports = async (req, res) => {
     const b = await body(req);
     if (b.action === 'give') return json(res, 200, { item: await feedback.give(user, b) });
     if (b.action === 'comment') return json(res, 200, await feedback.comment(user, b));
+    if (b.action === 'edit') return json(res, 200, await feedback.edit(user, b));
     if (b.action === 'upload') return json(res, 200, { file: await feedback.upload(user, b) });
     if (b.action === 'delete') { await feedback.remove(user, b.id); return json(res, 200, { ok: true }); }
     return json(res, 400, { error: 'Unknown action.' });

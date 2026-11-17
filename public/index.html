@@ -267,6 +267,20 @@
   .files img { width:96px; height:72px; object-fit:cover; border-radius:6px; display:block } .files a.img { padding:3px }
   .box { border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:8px } .box h4 { margin:0; font-size:13px; text-transform:uppercase; letter-spacing:.04em; color:var(--mute) }
   .box textarea, .box input[type=file] { font:inherit; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface) } .box textarea { min-height:70px; resize:vertical }
+  /* edit history: the "edited" link, the history dialog, inline edit boxes */
+  .lnk { border:0; background:none; padding:0; font:inherit; font-size:12px; font-weight:600; color:var(--accent); cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px } .lnk:hover { text-decoration-style:solid }
+  .lnk.end { margin-left:auto; text-decoration:none } .lnk.end:hover { text-decoration:underline }
+  .ckitem .meta { margin-right:auto; color:var(--mute); font-size:12.5px; display:flex; gap:6px; align-items:baseline; flex-wrap:wrap }
+  .spamnotes + .lnk, .spamnote + .lnk { display:inline-block; margin-top:4px }
+  .hentry { border:1px solid var(--line); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:8px }
+  .hentry .hd { display:flex; gap:8px; align-items:baseline; font-size:12.5px; color:var(--mute) } .hentry .hd b { color:var(--ink); font-size:13.5px }
+  .hentry .hf { display:grid; grid-template-columns:1fr 1fr; gap:6px 10px } .hentry .hf .k { grid-column:1/-1; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--mute) }
+  .hentry .was, .hentry .now { border-radius:8px; padding:6px 9px; white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; color:var(--ink2); max-height:220px; overflow:auto }
+  .hentry .was { background:var(--bad-bg) } .hentry .now { background:var(--good-bg) } .hentry small { display:block; font-size:11px; font-weight:600; color:var(--mute); margin-bottom:2px }
+  @media (max-width:560px) { .hentry .hf { grid-template-columns:1fr } }
+  .fbedit { display:flex; flex-direction:column; gap:8px } .fbedit textarea { font:inherit; padding:9px 11px; border:1px solid var(--accent); border-radius:10px; background:var(--surface); min-height:90px; resize:vertical; box-shadow:0 0 0 3px rgba(28,124,84,.12) } .fbedit textarea:focus { outline:0 }
+  .fbedit .row { display:flex; gap:8px; justify-content:flex-end; align-items:center } .fbedit .err { margin-right:auto }
+  .mini.solid { background:var(--accent); color:#fff } .tedit textarea { font-weight:400 }
   .box .btns { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap } .box .btns button { padding:8px 16px; border-radius:999px; font-weight:600; border:1px solid var(--line); background:var(--surface2) } .box .btns .go { background:var(--accent); border-color:var(--accent); color:#fff } .box .btns .no { background:var(--bad); border-color:var(--bad); color:#fff } .box .err { color:var(--bad); font-size:13px }
   .bspin { display:inline-block; width:13px; height:13px; margin-right:7px; vertical-align:-2px; border-radius:50%; border:2px solid currentColor; border-right-color:transparent; animation:rot .7s linear infinite }
   [aria-busy="true"] { cursor:progress }
@@ -343,6 +357,7 @@
 </div>
 
 <dialog class="dlg" id="dlg"></dialog>
+<dialog class="dlg wide" id="hdlg" aria-label="Edit history"></dialog>
 <script>
 // keep sticky offsets in step with the real top-bar / tab-bar heights (the bar wraps on narrow screens)
 function setOffsets(){ const r=document.documentElement.style, t=document.querySelector(".topbar"), b=document.querySelector(".tabs"); if(t) r.setProperty("--tb", t.offsetHeight+"px"); if(b) r.setProperty("--tabs", b.offsetHeight+"px"); }
@@ -771,8 +786,8 @@ function spamView(v, note) {
       ? `<select class="spamsel ${val}" data-sm="${esc(m)}" data-sk="${k}" aria-label="${esc(m)}: ${SPAM_CH.find((x) => x[0] === k)[1]}">${SPAM_RES.map(([r, t]) => `<option value="${r}" ${val === r ? 'selected' : ''}>${t}</option>`).join('')}</select>`
       : spamPill(val));
     const notes = (m, c) => { const dk = `spam:${day}:${m}`, val = dk in S.drafts ? S.drafts[dk] : c.notes || '';
-      return edit ? `<textarea class="spamnote" rows="1" maxlength="1000" data-sm="${esc(m)}" data-draft="${esc(dk)}" placeholder="Findings, if any…" aria-label="${esc(m)}: notes">${esc(val)}</textarea>`
-        : val ? `<div class="spamnotes">${esc(val)}</div>` : '<span class="dim">—</span>'; };
+      return (edit ? `<textarea class="spamnote" rows="1" maxlength="1000" data-sm="${esc(m)}" data-draft="${esc(dk)}" placeholder="Findings, if any…" aria-label="${esc(m)}: notes">${esc(val)}</textarea>`
+        : val ? `<div class="spamnotes">${esc(val)}</div>` : '<span class="dim">—</span>') + editedTag(`spam:${day}:${m}`, c, `Spam check · ${m} · ${fmtLong(day)}`); };
     v.innerHTML = `<div class="scroller"><table class="spamtbl"><thead><tr><th class="l">Team Member</th>${head}</tr></thead><tbody>${sp.team.map((m) => { const c = got[m] || {};
       return `<tr><td class="l">${esc(m)}</td>${SPAM_CH.map(([k]) => `<td>${pick(m, k, c[k] || '')}</td>`).join('')}<td class="l">${notes(m, c)}</td></tr>`; }).join('')}</tbody></table></div>`;
     if (edit) {
@@ -802,6 +817,35 @@ const SPAM_CH = [['emails', 'Emails'], ['calls', 'Phone Calls'], ['texts', 'Text
 const SPAM_RES = [['', 'Not checked'], ['works', 'Works'], ['spam', 'Spam']];
 const SPAM_TXT = { '': 'Not checked', works: 'Works', spam: 'Spam' };
 const spamPill = (val) => (val === 'works' || val === 'Works' ? '<span class="pill good">Works</span>' : val === 'spam' || val === 'Spam' ? '<span class="pill bad">Spam</span>' : '<span class="pill na">Not checked</span>');
+// ---------- edit history: anything changed after it was first saved shows an "edited" link that opens who changed what ----------
+const HIST_FIELDS = { summary: 'Summary', people: 'Sales people', link: 'Link', date: 'Day', text: 'Text', message: 'Comment', details: 'Explanation', reason: 'Reason', emails: 'Emails', calls: 'Phone Calls', texts: 'Texts', notes: 'Notes' };
+S.hist = {}; // data-hist key -> { title, entries } for the history dialog, refreshed on every render
+const histEntries = (o) => ((o && o.history) || []).filter((e) => e.changes && Object.keys(e.changes).length);
+function editedTag(key, o, title) {
+  const h = histEntries(o);
+  if (!h.length) return '';
+  S.hist[key] = { title, entries: h };
+  const last = h[h.length - 1];
+  return `<button type="button" class="lnk" data-hist="${esc(key)}" title="Last edited by ${esc(last.by)}, ${esc(fmtWhen(last.at))}. See the edit history.">edited${h.length > 1 ? ' ×' + h.length : ''}</button>`;
+}
+const histVal = (k, v) => {
+  if (Array.isArray(v)) v = v.join(', ');
+  if (SPAM_CH.some(([c]) => c === k)) v = SPAM_TXT[v || ''];
+  return v === '' || v == null ? '<span class="dim">(empty)</span>' : esc(v);
+};
+function histDlg(key) {
+  const x = S.hist[key];
+  if (!x) return;
+  const d = $('hdlg'), n = x.entries.length;
+  d.innerHTML = `<div class="body"><h3>Edit history</h3><p class="sub">${esc(x.title)} · ${n} ${n === 1 ? 'edit' : 'edits'}, newest first</p>
+    ${x.entries.slice().reverse().map((e) => `<div class="hentry"><div class="hd"><b>${esc(e.by)}</b><span>${esc(fmtWhen(e.at))}</span></div>
+      ${Object.entries(e.changes).map(([k, c]) => `<div class="hf"><span class="k">${esc(HIST_FIELDS[k] || k)}</span><div class="was"><small>Before</small>${histVal(k, c.from)}</div><div class="now"><small>After</small>${histVal(k, c.to)}</div></div>`).join('')}</div>`).join('')}
+    <div class="row"><button type="button" id="hClose">Close</button></div></div>`;
+  $('hClose').onclick = () => d.close();
+  d.showModal();
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-hist]'); if (b) { e.preventDefault(); histDlg(b.dataset.hist); } });
+
 // ---------- Feedback: Yash / Shreyans give feedback to a sales person; that person (and the givers) comment ----------
 // unsaved text in any [data-draft] box survives re-renders (the page reloads its data every 5 minutes)
 S.drafts = {};
@@ -846,12 +890,17 @@ function feedbackView(v) {
     <div class="row">${attachBtn('fb')}<span class="err" id="fbErr" role="alert"></span><button class="go" id="fbSend">Send feedback</button></div>
   </form>`;
   const shown = giver && S.fbFilter ? fb.items.filter((f) => f.rep === S.fbFilter) : fb.items;
+  // editing: S.fbEdit = '<feedback id>' or '<feedback id>:<comment id>'; unsaved text is kept in S.drafts['e:<key>']
+  if (S.fbEdit && !fb.items.some((f) => S.fbEdit === f.id || f.comments.some((c) => S.fbEdit === f.id + ':' + c.id))) S.fbEdit = null;
+  const editBox = (k, txt, max) => `<div class="fbedit"><textarea data-draft="e:${esc(k)}" data-fbebox="${esc(k)}" maxlength="${max}" aria-label="Edit text">${esc(S.drafts['e:' + k] ?? txt)}</textarea>
+    <div class="row"><span class="err" data-fbeerr="${esc(k)}" role="alert"></span><button class="mini" data-fbecancel>Cancel</button><button class="mini solid" data-fbesave="${esc(k)}">Save</button></div></div>`;
   const card = (f) => `<div class="ckitem">
-    <div class="top"><div class="fbmeta">${giver ? `<span class="pill na">To ${esc(f.rep)}</span>` : ''}<span>From <b>${esc(f.by)}</b> · ${esc(fmtWhen(f.at))}</span></div>
-      ${giver && f.by === me.name ? `<button class="mini bad" data-fbdel="${esc(f.id)}">Delete</button>` : ''}</div>
-    ${f.text ? `<p class="sum">${esc(f.text)}</p>` : ''}${attList(f.files)}
+    <div class="top"><div class="fbmeta">${giver ? `<span class="pill na">To ${esc(f.rep)}</span>` : ''}<span>From <b>${esc(f.by)}</b> · ${esc(fmtWhen(f.at))}</span>${editedTag('fb:' + f.id, f, `Feedback to ${f.rep} from ${f.by}`)}</div>
+      ${giver && f.by === me.name ? `<div class="acts">${S.fbEdit === f.id ? '' : `<button class="mini" data-fbedit="${esc(f.id)}">Edit</button>`}<button class="mini bad" data-fbdel="${esc(f.id)}">Delete</button></div>` : ''}</div>
+    ${S.fbEdit === f.id ? editBox(f.id, f.text, 5000) : f.text ? `<p class="sum">${esc(f.text)}</p>` : ''}${attList(f.files)}
     <div class="fbc">
-      ${f.comments.map((c) => `<div class="c${c.by === me.name ? ' mine' : ''}"><div class="h"><b>${esc(c.by)}</b><small>${esc(fmtWhen(c.at))}</small></div>${c.text ? `<p>${esc(c.text)}</p>` : ''}${attList(c.files)}</div>`).join('')}
+      ${f.comments.map((c) => { const k = f.id + ':' + c.id;
+        return `<div class="c${c.by === me.name ? ' mine' : ''}"><div class="h"><b>${esc(c.by)}</b><small>${esc(fmtWhen(c.at))}</small>${editedTag('fbc:' + c.id, c, `Comment by ${c.by}`)}${c.by === me.name && S.fbEdit !== k ? `<button class="lnk end" data-fbedit="${esc(k)}">Edit</button>` : ''}</div>${S.fbEdit === k ? editBox(k, c.text, 4000) : c.text ? `<p>${esc(c.text)}</p>` : ''}${attList(c.files)}</div>`; }).join('')}
       ${pendList('c:' + f.id)}
       <div class="reply"><textarea data-draft="c:${esc(f.id)}" data-fbc="${esc(f.id)}" data-attkey="c:${esc(f.id)}" maxlength="4000" placeholder="${f.comments.length ? 'Reply…' : 'Leave a comment…'}" aria-label="Comment">${dr('c:' + f.id)}</textarea>${attachBtn('c:' + f.id)}<button data-fbpost="${esc(f.id)}">Post</button></div>
       <div class="err" data-fberr="${esc(f.id)}" role="alert"></div>
@@ -899,6 +948,19 @@ function feedbackView(v) {
     const [k, i] = [x.dataset.unatt.slice(0, x.dataset.unatt.lastIndexOf('|')), +x.dataset.unatt.split('|').pop()];
     (S.fbFiles[k] || []).splice(i, 1); const el = v.querySelector(`[data-pend="${CSS.escape(k)}"]`); if (el) el.outerHTML = pendList(k);
   };
+  // edit a feedback / comment you wrote
+  v.querySelectorAll('[data-fbedit]').forEach((b) => (b.onclick = () => {
+    S.fbEdit = b.dataset.fbedit; render();
+    const ta = v.querySelector(`[data-fbebox="${CSS.escape(S.fbEdit)}"]`); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  }));
+  v.querySelectorAll('[data-fbecancel]').forEach((b) => (b.onclick = () => { delete S.drafts['e:' + S.fbEdit]; S.fbEdit = null; render(); }));
+  v.querySelectorAll('[data-fbesave]').forEach((btn) => (btn.onclick = async () => {
+    const k = btn.dataset.fbesave, [id, comment] = k.split(':'), ta = v.querySelector(`[data-fbebox="${CSS.escape(k)}"]`), err = v.querySelector(`[data-fbeerr="${CSS.escape(k)}"]`);
+    err.textContent = '';
+    const undo = busy(btn, 'Saving…');
+    try { const { item } = await api('/api/feedback', { action: 'edit', id, comment, text: ta.value.trim() }); undo(); fb.items = fb.items.map((x) => (x.id === id ? item : x)); delete S.drafts['e:' + k]; S.fbEdit = null; render(); }
+    catch (e) { undo(); err.textContent = e.message; }
+  }));
   v.querySelectorAll('[data-fbdel]').forEach((btn) => (btn.onclick = async () => {
     if (!confirm('Delete this feedback and its comments? This cannot be undone.')) return;
     const undo = busy(btn, 'Deleting…');
@@ -932,7 +994,7 @@ function checkinView(v) {
   const item = (e) => `<div class="ckitem${e.id === S.ckEdit ? ' editing' : ''}">
     <div class="top"><div class="who">${e.people.map((p) => `<span class="pill na">${esc(p)}</span>`).join('')}</div>${e.link ? `<a class="open" href="${esc(e.link)}" target="_blank" rel="noopener">Open in Granola ↗</a>` : '<span class="dim">No Granola link</span>'}</div>
     <div class="sum md">${md(e.summary)}</div>
-    ${edit ? `<div class="acts"><button class="mini" data-ckedit="${esc(e.id)}">Edit</button><button class="mini bad" data-ckdel="${esc(e.id)}">Delete</button></div>` : ''}
+    <div class="acts"><span class="meta">${e.by ? `Added by ${esc(e.by)}` : ''}${editedTag('ck:' + e.id, e, `Check-in · ${fmtLong(e.date)}`)}</span>${edit ? `<button class="mini" data-ckedit="${esc(e.id)}">Edit</button><button class="mini bad" data-ckdel="${esc(e.id)}">Delete</button>` : ''}</div>
   </div>`;
   const items = list.length ? `<div class="ckhead"><h4>Check-ins on this day</h4><span>${list.length}</span></div>${list.map(item).join('')}`
     : `<div class="empty"><b>No check-ins for this day</b>${edit ? 'Add one with the form above.' : 'Arth or Guillermo add them here.'}</div>`;
@@ -1117,18 +1179,25 @@ function raiseDlg(row) {
 // ---------- a discrepancy's conversation: details, attachments, comments; Accept / Reject for Yash ----------
 const fmtWhen = (iso) => (iso ? new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '');
 const fileList = (a) => (a && a.length ? `<div class="files">${a.map((f) => f.url ? (/^image\//.test(f.type) ? `<a class="img" href="${esc(f.url)}" target="_blank" rel="noopener" title="${esc(f.name)}"><img src="${esc(f.thumb || f.url)}" alt="${esc(f.name)}"></a>` : `<a href="${esc(f.url)}" target="_blank" rel="noopener">📎 ${esc(f.name)}</a>`) : `<a>📎 ${esc(f.name)} (uploading…)</a>`).join('')}</div>` : '');
-function threadDlg(id) {
+// editing: 'd' = the discrepancy itself (its raiser, while open), or the id of one of your comments
+function threadDlg(id, editing = null) {
   const t = (S.D.disputesRaw || []).find((x) => x.id === id);
   if (!t) return;
   const me = S.D.me || {}, open = t.status === 'open', linked = !!t.dealId;
+  const editBtn = (k) => (editing === k ? '' : `<button type="button" class="lnk end" data-tedit="${esc(k)}">Edit</button>`);
+  const editBtns = '<div class="err" id="eErr" role="alert"></div><div class="btns"><button type="button" id="eCancel">Cancel</button><button type="button" class="go" id="eSave">Save changes</button></div>';
   const can = me.resolver || t.raisedByEmail === me.email || (t.rep && t.rep === me.name);
   const pill = `<span class="pill ${open ? 'warn' : t.status === 'accepted' ? 'good' : 'bad'}">${open ? 'Open' : t.status === 'accepted' ? 'Accepted' : 'Rejected'}</span>`;
   const d = $('dlg'); d.classList.add('wide');
   d.innerHTML = `<div class="body"><h3>${esc(t.client || 'Discrepancy')} ${pill}</h3>
     <p class="sub">Rep: ${esc(t.rep || '—')} · raised by ${esc(t.raisedBy)} on ${esc(fmtWhen(t.at))} · ${esc(t.reason)}${t.dealLink ? ` · <a class="open" href="${esc(t.dealLink)}" target="_blank" rel="noopener">HubSpot deal ↗</a>` : ''}</p>
     <div class="thread">
-      <div class="msg ${t.raisedByEmail === me.email ? 'mine' : ''}"><div class="hd"><b>${esc(t.raisedBy)}</b><span>${esc(fmtWhen(t.at))}</span></div><div class="tx">${esc(t.details)}</div>${t.link ? `<div class="files"><a href="${esc(t.link)}" target="_blank" rel="noopener">🔗 Proof link</a></div>` : ''}${fileList(t.attachments)}</div>
-      ${(t.comments || []).map((c) => `<div class="msg ${c.authorEmail === me.email ? 'mine' : ''}"><div class="hd"><b>${esc(c.author)}</b><span>${esc(fmtWhen(c.at))}</span></div>${c.message ? `<div class="tx">${esc(c.message)}</div>` : ''}${fileList(c.attachments)}</div>`).join('')}
+      <div class="msg ${t.raisedByEmail === me.email ? 'mine' : ''}"><div class="hd"><b>${esc(t.raisedBy)}</b><span>${esc(fmtWhen(t.at))}</span>${editedTag('d:' + t.id, t, `Discrepancy · ${t.client || ''}`)}${open && t.raisedByEmail === me.email ? editBtn('d') : ''}</div>
+        ${editing === 'd' ? `<div class="box tedit"><label>Reason<select id="eReason">${REASONS.map((x) => `<option ${x === t.reason ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></label>
+          <label>Explanation<textarea id="eDetails" maxlength="2000">${esc(t.details)}</textarea></label><label>Proof link (optional)<input id="eLink" type="url" placeholder="https://…" value="${esc(t.link || '')}"></label>${editBtns}</div>`
+        : `<div class="tx">${esc(t.details)}</div>${t.link ? `<div class="files"><a href="${esc(t.link)}" target="_blank" rel="noopener">🔗 Proof link</a></div>` : ''}`}${fileList(t.attachments)}</div>
+      ${(t.comments || []).map((c) => `<div class="msg ${c.authorEmail === me.email ? 'mine' : ''}"><div class="hd"><b>${esc(c.author)}</b><span>${esc(fmtWhen(c.at))}</span>${editedTag('dc:' + c.id, c, `Comment by ${c.author}`)}${c.authorEmail === me.email ? editBtn(c.id) : ''}</div>${editing === c.id
+        ? `<div class="box tedit"><textarea id="eMsg" maxlength="4000" aria-label="Edit your comment">${esc(c.message)}</textarea>${editBtns}</div>` : c.message ? `<div class="tx">${esc(c.message)}</div>` : ''}${fileList(c.attachments)}</div>`).join('')}
       ${open ? '' : `<div class="msg"><div class="hd"><b>${esc(t.resolvedBy || 'Resolved')}</b><span>${esc(fmtWhen(t.resolvedAt))}</span></div><div class="tx"><b>${t.status === 'accepted' ? (linked ? 'Accepted: the deal now counts as a verified win.' : 'Accepted.') : (linked ? 'Rejected: the deal stays unverified.' : 'Rejected.')}</b>${t.note ? '\n' + esc(t.note) : ''}</div></div>`}
     </div>
     ${can ? `<div class="box"><h4>Add a comment</h4><textarea id="cMsg" maxlength="4000" placeholder="Write a reply…"></textarea>
@@ -1149,6 +1218,15 @@ function threadDlg(id) {
     try { await post({ id, ...(await make()) }); await load(true); threadDlg(id); } // re-renders the dialog (loader gone)
     catch (e) { done(); $(errId).textContent = e.message; }
   };
+  d.querySelectorAll('[data-tedit]').forEach((b) => (b.onclick = () => threadDlg(id, b.dataset.tedit)));
+  if (editing && $('eSave')) {
+    $('eCancel').onclick = () => threadDlg(id);
+    $('eSave').onclick = () => {
+      const b = editing === 'd' ? { action: 'edit', reason: $('eReason').value, details: $('eDetails').value, link: $('eLink').value } : { action: 'edit', comment: editing, message: $('eMsg').value };
+      if (editing === 'd' && !b.details.trim()) { $('eErr').textContent = 'Add a short explanation.'; return; }
+      act($('eSave'), 'Saving…', 'eErr', async () => b);
+    };
+  }
   if (can) $('cGo').onclick = () => { const msg = $('cMsg').value, input = $('cFiles'); act($('cGo'), 'Posting…', 'cErr', async () => ({ action: 'comment', message: msg, files: await readFiles(input) })); };
   if (me.resolver) {
     const wasAcc = t.status === 'accepted' && linked;
@@ -1157,7 +1235,9 @@ function threadDlg(id) {
     if ($('rOpen')) $('rOpen').onclick = () => { if (!confirm(`Reopen this discrepancy?${wasAcc ? ' The deal goes back to unverified until it is accepted again.' : ''}`)) return; act($('rOpen'), 'Reopening…', 'rErr', async () => ({ action: 'resolve', decision: 'open' })); };
   }
   if (!d.open) d.showModal();
-  const th = d.querySelector('.thread'); if (th) th.lastElementChild.scrollIntoView({ block: 'nearest' });
+  const ed = d.querySelector('.tedit'), th = d.querySelector('.thread');
+  if (ed) { ed.scrollIntoView({ block: 'nearest' }); ed.querySelector('textarea').focus(); }
+  else if (th) th.lastElementChild.scrollIntoView({ block: 'nearest' });
 }
 // every deal row the page knows (Closed Won Check + the lists behind "Unverified Wins"), for the Raise button
 const dealRow = (id) => (S.D.verify || []).concat(...Object.values(S.D.unverified || {})).find((w) => w.Discrepancy === id);

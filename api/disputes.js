@@ -7,6 +7,7 @@ const notify = require('../lib/notify');
 // GET -> the discrepancies this user may see (Yash / Shreyans: all; others: the ones they raised or about their deals).
 // POST { action: 'raise', ... }        any user          -> e-mails Yash (DISPUTE_NOTIFY_TO)
 // POST { action: 'comment', id, message, files }  Yash / the deal's rep / the raiser -> e-mails the others
+// POST { action: 'edit', id, reason, details, link }  the raiser, while open;  { action: 'edit', id, comment, message }  the comment's author
 // POST { action: 'resolve', id, decision: accepted|rejected|open, note }   Yash / Shreyans (RESOLVERS), any time -> e-mails the rep and the raiser
 module.exports = async (req, res) => {
   const user = await authorize(req, res);
@@ -22,6 +23,7 @@ module.exports = async (req, res) => {
       const { dispute, comment } = await disputes.comment(user, b);
       return json(res, 200, { comment, notified: (await notify.send('comment', dispute, user, { comment }, portal)).sent });
     }
+    if (b.action === 'edit') return json(res, 200, { dispute: await disputes.edit(user, b) });
     if (b.action === 'resolve') {
       const dispute = await disputes.resolve(user, b);
       return json(res, 200, { dispute, notified: (await notify.send('resolved', dispute, user, {}, portal)).sent });
