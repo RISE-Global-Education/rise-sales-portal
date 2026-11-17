@@ -45,6 +45,9 @@
   .ckform h3 { margin:0; font:600 18px/1.3 "Red Hat Display", Inter, sans-serif }
   .ckform .fl, .ckform label { display:flex; flex-direction:column; gap:6px; font-size:12.5px; font-weight:600; color:var(--ink2) }
   .ckform input[type=url], .ckform textarea { font:inherit; font-weight:400; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface) } .ckform textarea { min-height:110px; resize:vertical }
+  .ckform .ckedit { font-weight:400; color:var(--ink2); padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface); min-height:110px; max-height:420px; overflow:auto; line-height:1.55; overflow-wrap:anywhere }
+  .ckform .ckedit:focus { outline:0; border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
+  .ckform .ckedit:empty::before { content:attr(data-ph); color:var(--mute) }
   .ckform input[type=url]:focus, .ckform textarea:focus { outline:0; border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
   .chips { display:flex; flex-wrap:wrap; gap:8px } .ckform .chips .spamcb { flex-direction:row; gap:8px; font-size:14px; font-weight:500; color:var(--ink) } .ckform .chips .spamcb:has(input:checked) { color:var(--good) }
   .ckform .req { font-weight:500; color:var(--bad); font-size:11.5px; margin-left:4px }
@@ -54,7 +57,11 @@
   .ckitem { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 20px; display:flex; flex-direction:column; gap:10px }
   .ckitem.editing { border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
   .ckitem .top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap } .ckitem .who { display:flex; flex-wrap:wrap; gap:6px }
-  .ckitem .sum { margin:0; white-space:pre-wrap; color:var(--ink2); overflow-wrap:anywhere }
+  .ckitem .sum { margin:0; color:var(--ink2); overflow-wrap:anywhere; line-height:1.55 }
+  .md > :first-child { margin-top:0 } .md > :last-child { margin-bottom:0 }
+  .md p, .md ul, .md ol { margin:0 0 8px } .md ul, .md ol { padding-left:22px } .md li + li { margin-top:4px }
+  .md .mdh { margin:10px 0 6px; font-size:14px; font-weight:600; color:var(--ink, inherit) } .md strong { color:var(--ink, inherit); font-weight:600 }
+  .md code { font-size:.92em; background:rgba(0,0,0,.05); padding:1px 4px; border-radius:4px }
   .ckitem .acts { display:flex; gap:8px; justify-content:flex-end }
   /* ---------- Feedback ---------- */
   .ckform select { font:inherit; font-weight:400; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface); max-width:320px }
@@ -411,6 +418,64 @@ const COLORS = ['#1C7C54', '#2E7D5B', '#5B7A2B', '#3F6B52', '#7A4A24', '#8A3B5E'
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// tiny, safe Markdown → HTML for Granola summaries: escapes first, then headings, lists, bold/italic/code/links
+const mdInline = (t) => esc(t)
+  .replace(/`([^`]+)`/g, '<code>$1</code>')
+  .replace(/\*\*([^*]+)\*\*|__([^_]+)__/g, (_, a, b) => `<strong>${a || b}</strong>`)
+  .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
+  .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+function md(src) {
+  const out = []; let list = null, para = [];
+  const flushP = () => { if (para.length) out.push(`<p>${para.map(mdInline).join('<br>')}</p>`); para = []; };
+  const flushL = () => { if (list) out.push(`<${list.tag}>${list.items.map((i) => `<li>${mdInline(i)}</li>`).join('')}</${list.tag}>`); list = null; };
+  for (const raw of String(src ?? '').replace(/\r\n?/g, '\n').split('\n')) {
+    const line = raw.trim(); let m;
+    if (!line) { flushP(); flushL(); continue; }
+    if ((m = line.match(/^(#{1,6})\s+(.*)$/))) { flushP(); flushL(); out.push(`<h5 class="mdh">${mdInline(m[2])}</h5>`); continue; }
+    if ((m = line.match(/^([-*+]|\d+[.)])\s+(.*)$/))) {
+      flushP(); const tag = /\d/.test(m[1]) ? 'ol' : 'ul';
+      if (!list || list.tag !== tag) { flushL(); list = { tag, items: [] }; }
+      list.items.push(m[2]); continue;
+    }
+    if (list) { list.items[list.items.length - 1] += ' ' + line; continue; }
+    para.push(line);
+  }
+  flushP(); flushL(); return out.join('');
+}
+// Markdown → plain readable text (for one-line / clamped table cells and tooltips)
+const mdText = (src) => String(src ?? '').replace(/\r\n?/g, '\n').split('\n').map((l) => l.trim()
+  .replace(/^#{1,6}\s+/, '').replace(/^[-*+]\s+/, '• ')
+  .replace(/\*\*([^*]+)\*\*|__([^_]+)__/g, (_, a, b) => a || b).replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1$2')
+  .replace(/`([^`]+)`/g, '$1').replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1')).filter(Boolean).join(' ');
+// formatted editor (contenteditable) → Markdown, so what's stored stays Markdown and is rendered with md()
+function htmlToMd(root) {
+  const inl = (n) => [...n.childNodes].map((c) => {
+    if (c.nodeType === 3) return c.textContent.replace(/\s+/g, ' ');
+    if (c.nodeType !== 1) return '';
+    const t = c.tagName, x = inl(c);
+    if (t === 'BR') return '\n';
+    if (!x.trim()) return x;
+    if (t === 'B' || t === 'STRONG') return `**${x.trim()}**`;
+    if (t === 'I' || t === 'EM') return `*${x.trim()}*`;
+    if (t === 'CODE') return '`' + x + '`';
+    if (t === 'A' && /^https?:/.test(c.getAttribute('href') || '')) return `[${x}](${c.getAttribute('href')})`;
+    if (/^(P|DIV|H[1-6]|UL|OL|LI)$/.test(t)) return '\n' + blocks(c) + '\n';
+    return x;
+  }).join('');
+  const blocks = (n) => {
+    const out = []; let run = [];
+    const flush = () => { const t = run.join('').split('\n').map((l) => l.trim()).filter(Boolean).join('\n'); if (t) out.push(t); run = []; };
+    for (const c of n.childNodes) {
+      const t = c.nodeType === 1 ? c.tagName : '';
+      if (/^H[1-6]$/.test(t)) { flush(); out.push('### ' + inl(c).replace(/\s+/g, ' ').trim()); }
+      else if (t === 'UL' || t === 'OL') { flush(); out.push([...c.children].filter((li) => li.tagName === 'LI').map((li, i) => `${t === 'OL' ? i + 1 + '.' : '-'} ${inl(li).replace(/\s+/g, ' ').trim()}`).join('\n')); }
+      else if (t === 'P' || t === 'DIV') { flush(); const b = blocks(c); if (b) out.push(b); }
+      else run.push(c.nodeType === 3 ? c.textContent : c.nodeType === 1 ? inl({ childNodes: [c] }) : '');
+    }
+    flush(); return out.join('\n\n');
+  };
+  return blocks(root).trim();
+}
 const ic = (t) => (t ? `<span class="i" tabindex="0" data-tip="${esc(t)}">i</span>` : '');
 const ymd = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const noon = (s) => new Date(s + 'T12:00:00');
@@ -623,7 +688,8 @@ function cell(col, v, r = {}) {
   if (col === 'Verified Wins' && typeof v === 'number' && v > 0) return `<td><button class="mini eye ok" data-ver="${esc(r.Month + '|' + r['Team Member'])}" aria-label="View the ${v} verified wins">${EYE}${v}</button></td>`;
   if (col === 'Details' || col === 'Resolution' || col === 'Reason' || col === 'Client') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (col === 'Granola Link') return `<td class="l">${v ? `<a class="open" href="${esc(v)}" target="_blank" rel="noopener">Open ↗</a>` : '<span class="dim">—</span>'}</td>`;
-  if (col === 'Check-in Summary' || col === 'Sales People') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
+  if (col === 'Check-in Summary' || col === 'Summary') { const t = mdText(v); return `<td class="l txt"><div class="clamp" title="${esc(t)}">${esc(t) || '<span class="dim">—</span>'}</div></td>`; }
+  if (col === 'Sales People') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (col === 'Granola Note') return `<td class="l">${v ? `<a class="open" href="${esc(v)}" target="_blank" rel="noopener">Open ↗</a>` : '<span class="dim">—</span>'}</td>`;
   if (col === 'Spam Detected' || col === 'Works Fine') {
     if (v === 'Spam detected') return '<td><span class="pill bad">Spam detected</span></td>';
@@ -765,12 +831,12 @@ function checkinView(v) {
     <h3>${cur ? 'Edit check-in' : 'Add a check-in'} · ${esc(fmtLong(day))}</h3>
     <div class="fl">Sales people<div class="chips">${ck.people.map((p) => `<label class="spamcb green"><input type="checkbox" name="ckp" value="${esc(p)}" ${val.people.includes(p) ? 'checked' : ''}><span>${esc(p)}</span></label>`).join('')}</div></div>
     <label><span>Granola link <span class="req">required</span></span><input type="url" id="ckLink" maxlength="500" required placeholder="https://notes.granola.ai/d/…" value="${esc(val.link)}"><span class="ckhint" id="ckHint" aria-live="polite">Paste the check-in’s Granola link and its summary is filled in for you.</span></label>
-    <label>Summary<textarea id="ckSum" maxlength="20000" placeholder="Filled in from Granola. You can edit it before saving.">${esc(val.summary)}</textarea></label>
+    <div class="fl">Summary<div id="ckSum" class="ckedit md" contenteditable="true" role="textbox" aria-multiline="true" data-ph="Filled in from Granola. You can edit it before saving.">${md(val.summary)}</div></div>
     <div class="row"><span class="err" id="ckErr" role="alert"></span>${cur ? '<button type="button" id="ckCancel">Cancel</button>' : ''}<button class="go" id="ckSave">${cur ? 'Save changes' : 'Save'}</button></div>
   </form>`;
   const item = (e) => `<div class="ckitem${e.id === S.ckEdit ? ' editing' : ''}">
     <div class="top"><div class="who">${e.people.map((p) => `<span class="pill na">${esc(p)}</span>`).join('')}</div>${e.link ? `<a class="open" href="${esc(e.link)}" target="_blank" rel="noopener">Open in Granola ↗</a>` : '<span class="dim">No Granola link</span>'}</div>
-    <p class="sum">${esc(e.summary)}</p>
+    <div class="sum md">${md(e.summary)}</div>
     ${edit ? `<div class="acts"><button class="mini" data-ckedit="${esc(e.id)}">Edit</button><button class="mini bad" data-ckdel="${esc(e.id)}">Delete</button></div>` : ''}
   </div>`;
   const items = list.length ? `<div class="ckhead"><h4>Check-ins on this day</h4><span>${list.length}</span></div>${list.map(item).join('')}`
@@ -778,8 +844,10 @@ function checkinView(v) {
   v.innerHTML = `<div class="ck">${form}${items}</div>`;
   if (!edit) return;
 
-  const draft = () => (S.ckDraft = { day, id: S.ckEdit, people: [...v.querySelectorAll('input[name=ckp]:checked')].map((x) => x.value), link: $('ckLink').value, summary: $('ckSum').value, filled: ckFilled });
+  const draft = () => (S.ckDraft = { day, id: S.ckEdit, people: [...v.querySelectorAll('input[name=ckp]:checked')].map((x) => x.value), link: $('ckLink').value, summary: htmlToMd($('ckSum')), filled: ckFilled });
   $('ckForm').oninput = draft;
+  // pasting (e.g. Markdown copied from Granola) inserts it formatted, never as raw symbols or foreign styling
+  $('ckSum').onpaste = (ev) => { ev.preventDefault(); const t = ev.clipboardData.getData('text/plain'); if (t) document.execCommand('insertHTML', false, md(t)); draft(); };
   ckAsked = ''; ckFilled = dr && dr.filled || '';
   // pasting / typing a Granola link fetches that note's summary into the Summary box
   let timer;
@@ -787,7 +855,7 @@ function checkinView(v) {
   $('ckLink').onchange = () => { clearTimeout(timer); granolaSummary(draft); };
   $('ckForm').onsubmit = async (ev) => {
     ev.preventDefault(); $('ckErr').textContent = '';
-    const b = { action: 'save', id: S.ckEdit || undefined, date: day, people: [...v.querySelectorAll('input[name=ckp]:checked')].map((x) => x.value), link: $('ckLink').value.trim(), summary: $('ckSum').value.trim() };
+    const b = { action: 'save', id: S.ckEdit || undefined, date: day, people: [...v.querySelectorAll('input[name=ckp]:checked')].map((x) => x.value), link: $('ckLink').value.trim(), summary: htmlToMd($('ckSum')) };
     if (!b.people.length) { $('ckErr').textContent = 'Pick at least one sales person.'; return; }
     if (!b.link) { $('ckErr').textContent = 'Add the Granola link.'; $('ckLink').focus(); return; }
     if (!GRANOLA_LINK.test(b.link)) { $('ckErr').textContent = 'The Granola link must look like https://notes.granola.ai/d/…'; $('ckLink').focus(); return; }
@@ -824,9 +892,9 @@ async function granolaSummary(draft) {
     const note = await api('/api/checkins', { action: 'granola', link });
     if (($('ckLink') || {}).value?.trim() !== link) return; // the link changed while we waited
     if (!note.summary) return hint(`Found “${note.title || 'Untitled note'}”, but Granola has no summary for it yet. Write one below.`, 'bad');
-    const sum = $('ckSum'), mine = sum.value.trim();
+    const sum = $('ckSum'), mine = htmlToMd(sum);
     if (mine && mine !== ckFilled.trim() && mine !== note.summary && !confirm('Replace the summary you wrote with the one from Granola?')) return hint(`Kept your summary. Granola note: “${note.title || 'Untitled note'}”.`);
-    sum.value = ckFilled = note.summary; draft();
+    ckFilled = note.summary; sum.innerHTML = md(note.summary); draft();
     hint(`Summary filled in from “${note.title || 'Untitled note'}”. You can edit it before saving.`, 'ok');
   } catch (err) {
     if (($('ckLink') || {}).value?.trim() === link) { ckAsked = ''; hint('Could not fetch the summary: ' + err.message, 'bad'); }
