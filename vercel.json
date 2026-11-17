@@ -32,5 +32,11 @@
       "path": "/api/cron/weekly",
       "schedule": "*/15 5-9 * * 0"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/sso/:action",
+      "destination": "/api/sso?action=:action"
+    }
   ]
 }

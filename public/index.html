@@ -597,10 +597,11 @@ async function load(silent = false) {
   let resp;
   try { resp = await fetch(`/api/data?from=${f}&to=${t}&rep=${encodeURIComponent(S.reps.join('|'))}&country=${encodeURIComponent(S.countries.join('|'))}`); }
   catch { $('view').innerHTML = '<div class="empty"><b>Can’t reach the server</b>Check that it is running, then reload.</div>'; return; }
-  if (resp.status === 401) return authScreen();
+  if (resp.status === 401) return authScreen(await resp.json().catch(() => ({})));
   const r = await resp.json();
   if (r.error) { $('view').innerHTML = `<div class="empty"><b>Something went wrong</b>${esc(r.error)}</div>`; return; }
   if (r.loading) { $('view').innerHTML = '<div class="empty"><b>Loading data from HubSpot and Granola</b>The first load takes a few minutes. This page will update by itself.</div>'; setTimeout(load, 10000); return; }
+  try { sessionStorage.removeItem('salesSsoBounceAt'); } catch {}
   S.D = r; TARGETS = r.targets || TARGETS; render();
 }
 // ---------- sign in / first-login password change (the whole portal needs a login) ----------
@@ -610,7 +611,21 @@ async function api(url, b) {
   if (!r.ok) throw Object.assign(new Error(j.error || 'Something went wrong (' + r.status + ')'), { status: r.status });
   return j;
 }
-function authScreen() {
+// Single sign-on: the server answers 401 with `sso` when sign-in happens on the RISE Internal Portal. The portal
+// sends the browser straight back with a session (or asks for Google sign-in first). The bounce guard stops a loop
+// if the cookie does not stick (e.g. cookies blocked).
+function authScreen(j = {}) {
+  if (j.sso) {
+    let last = 0; try { last = Number(sessionStorage.getItem('salesSsoBounceAt') || 0); sessionStorage.setItem('salesSsoBounceAt', String(Date.now())); } catch {}
+    if (Date.now() - last > 15000) {
+      location.assign(`${j.sso.portalUrl}/sso/authorize?` + new URLSearchParams({ app: j.sso.appId, return: location.href }));
+      return;
+    }
+    document.body.innerHTML = `<div class="authwrap"><div class="auth"><div class="brandline">RISE Sales Portal</div>
+      <span class="dim">Sign-in did not complete. Check that your browser allows cookies for this site.</span>
+      <a href="${esc(j.sso.portalUrl)}/">Back to the RISE portal</a></div></div>`;
+    return;
+  }
   document.body.innerHTML = `<div class="authwrap"><form class="auth" id="af" novalidate>
     <div class="brandline">RISE Sales Portal</div><h2>Sign in</h2>
     <span class="dim">Use your RISE e-mail and your password.</span>
@@ -623,7 +638,11 @@ function authScreen() {
     catch (err) { $('aErr').textContent = err.message; $('aGo').disabled = false; }
   };
 }
-async function signOut() { await api('/api/auth', { action: 'logout' }).catch(() => {}); location.reload(); }
+async function signOut() {
+  const r = await api('/api/auth', { action: 'logout' }).catch(() => ({}));
+  if (r.redirect) location.assign(r.redirect); // SSO: sign out of every RISE tool
+  else location.reload();
+}
 
 // ---------- rendering ----------
 // ---------- multi-select filters ----------
