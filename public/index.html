@@ -39,6 +39,13 @@
   .spamcb input:disabled { cursor:progress }
   .spamcb.red input { accent-color:var(--bad) } .spamcb.red:has(input:checked) { border-color:var(--bad); color:var(--bad); background:var(--bad-bg) }
   .spamcb.green:has(input:checked) { background:var(--good-bg) }
+  .spamsel { font:inherit; font-size:14px; font-weight:500; padding:7px 30px 7px 12px; border:1px solid var(--line); border-radius:999px; background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%236B6B6B' stroke-width='1.6'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center; appearance:none; -webkit-appearance:none; color:var(--mute); cursor:pointer; min-width:132px }
+  .spamsel:focus { outline:0; box-shadow:0 0 0 3px rgba(28,124,84,.15) }
+  .spamsel.works { border-color:var(--good); color:var(--good); background-color:var(--good-bg) } .spamsel.spam { border-color:var(--bad); color:var(--bad); background-color:var(--bad-bg) }
+  .spamtbl td.l:last-child { min-width:260px; width:32% }
+  .spamnote { width:100%; font:inherit; font-size:14px; padding:7px 11px; border:1px solid var(--line); border-radius:10px; background:var(--surface); resize:none; overflow:hidden; min-height:36px; line-height:1.4 }
+  .spamnote:focus { outline:0; border-color:var(--accent); box-shadow:0 0 0 3px rgba(28,124,84,.12) }
+  .spamnotes { white-space:pre-wrap; overflow-wrap:anywhere; color:var(--ink2); font-size:14px }
   /* ---------- Daily Checkin ---------- */
   .ck { display:flex; flex-direction:column; gap:14px }
   .ckform { display:flex; flex-direction:column; gap:14px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px }
@@ -342,7 +349,7 @@ function setOffsets(){ const r=document.documentElement.style, t=document.queryS
 addEventListener("resize", setOffsets); addEventListener("load", setOffsets); new MutationObserver(setOffsets).observe(document.documentElement,{childList:true,subtree:true}); setOffsets();
 document.getElementById('menuBtn').onclick = () => { document.body.classList.toggle('nav'); document.getElementById('menuBtn').textContent = document.body.classList.contains('nav') ? '✕' : '☰'; };
 document.getElementById('scrim').onclick = () => { document.body.classList.remove('nav'); document.getElementById('menuBtn').textContent = '☰'; };
-const COPY = { dashboard: ['Results, lead conversion, follow-up and call quality for the selected dates at a glance.', 'Use the Team member filter and the date picker to change what you see. Hover any (i) for how a number is calculated.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], feedback: ['Feedback from Yash and Shreyans to each sales person, with comments. A sales person sees only the feedback written to them.', 'Feedback is not filtered by the dates: everything is listed, newest first.'], checkin: ['Daily check-ins with the sales team: who joined, the Granola recording and a summary. Arth and Guillermo add and edit them; everyone else can view.', ''], spam: ['Daily spam check of each team member’s e-mail and phone. Guillermo ticks the boxes; everyone else can view.', 'Pick one day to see (or, for Guillermo, tick) that day’s checks. Pick a date range to see the history.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Open one to read and reply in its conversation (with screenshots). Yash or Shreyans accepts or rejects it there (and can change that later); an accepted deal moves to Verified Wins. Yash and Shreyans see every discrepancy; everyone else sees only the ones they raised or that are about their deals.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
+const COPY = { dashboard: ['Results, lead conversion, follow-up and call quality for the selected dates at a glance.', 'Use the Team member filter and the date picker to change what you see. Hover any (i) for how a number is calculated.'], compliance: ['One row per rep: process compliance against the sheet’s targets, plus deals closed and conversion.', 'Click a column header to sort. Green is at target, amber within 30%, red below.'], daily: ['Meeting activity for each person on each day, filled in automatically.', 'Click a column header to sort, or search by name or date.'], tracker: ['Every recorded discovery call in the selected dates, with duration, portal mention and summary.', 'Search by prospect, rep or summary. Scroll sideways for more columns.'], metrics: ['Every metric in one table: deals, meetings, contacts, bookings, close rates and tasks.', 'Click a column header to sort. Overdue Tasks is the current count and ignores the dates.'], pipeline: ['Deals moving between Sales Pipeline stages in the selected dates, and what is open now.', 'Click a column header to sort, or search by deal or stage.'], verify: ['Every Closed Won deal whose Airtable Client Date is in the selected dates (HubSpot close date if it has no Airtable record), checked for proof of conversation (the rep’s Granola note with a transcript) and proof of payment (Airtable client).', 'A deal counts towards commission only when both proofs are found, or a manager accepts a discrepancy. Use “Raise” if a deal was missed.'], commission: ['Commission per rep for each calendar month in the selected dates. It resets every month; only verified wins count, dated by the Airtable Client Date.', 'Pick a month with the date picker (e.g. “This month” or “Last month”). Unverified wins and open discrepancies are shown so they can be fixed before payout.'], feedback: ['Feedback from Yash and Shreyans to each sales person, with comments. A sales person sees only the feedback written to them.', 'Feedback is not filtered by the dates: everything is listed, newest first.'], checkin: ['Daily check-ins with the sales team: who joined, the Granola recording and a summary. Arth and Guillermo add and edit them; everyone else can view.', ''], spam: ['Daily spam check of each team member’s e-mails, phone calls and texts, with notes on any findings. Guillermo marks each one Works or Spam; everyone else can view.', 'Pick one day to see (or, for Guillermo, mark) that day’s checks. Pick a date range to see the history.'], disputes: ['Discrepancies raised by the team about the Closed Won check. Open one to read and reply in its conversation (with screenshots). Yash or Shreyans accepts or rejects it there (and can change that later); an accepted deal moves to Verified Wins. Yash and Shreyans see every discrepancy; everyone else sees only the ones they raised or that are about their deals.', 'Raise one from a deal’s row in Closed Won Check, or with “Raise a discrepancy” for a deal that is not listed.'] };
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', tip: 'The overview: deals closed, meetings and close rate; new leads who booked a call (by source); follow-ups still pending; and Granola call quality (length and portal mentions).' },
   { id: 'compliance', label: 'Compliance Score Monitor', tip: 'One row per rep: process compliance (Granola, post-call, portal, call length) plus deals closed and conversion. Mirrors the sheet’s top table.' },
@@ -354,7 +361,7 @@ const TABS = [
   { id: 'commission', label: 'Commission Calculator', tip: 'Monthly commission per rep from verified wins only, using each rep’s commission rule.' },
   { id: 'feedback', label: 'Feedback', tip: 'Feedback from Yash and Shreyans to a sales person, with a comment thread. Each sales person sees only their own feedback; Yash and Shreyans see all of it.' },
   { id: 'checkin', label: 'Daily Checkin', tip: 'Daily check-ins with the sales team: which sales people joined, the Granola link and a summary. Only Arth and Guillermo can add or edit them; everyone else can view.' },
-  { id: 'spam', label: 'Spam Check', tip: 'Daily check of whether each team member’s e-mail and phone were checked for spam. Only Guillermo can tick the boxes; everyone else can view.' },
+  { id: 'spam', label: 'Spam Check', tip: 'Daily check of each team member’s e-mails, phone calls and texts: Works or Spam, with notes on what was found. Only Guillermo can mark them; everyone else can view.' },
   { id: 'disputes', label: 'Discrepancies', tip: 'Discrepancies raised on the portal, each with a conversation between Yash, Shreyans and the rep. Yash or Shreyans accepts, rejects or reopens them.' },
 ];
 let TARGETS = {}; // loaded from the server (lib/config.js) with the data
@@ -410,7 +417,7 @@ const HINTS = {
   'Raised': 'Date the discrepancy was raised.', 'Reason': 'Why the deal should count.', 'Proof': 'Link given as proof (recording, receipt …).', 'Raised By': 'Who raised it.',
   'Resolution': 'Who resolved it, and their note.', 'Comments': 'Messages in the discrepancy’s conversation.', 'Files': 'Screenshots and files attached to it and its comments.', 'Thread': 'Open the discrepancy: details, attachments and the conversation (and Accept / Reject for Yash).',
 };
-Object.assign(HINTS, { 'Email Spam Checked': 'Yes = Guillermo marked this person’s e-mail as checked for spam on that day.', 'Phone Spam Checked': 'Yes = Guillermo marked this person’s phone number as checked for spam on that day.', 'Spam Detected': 'Red = the check found this person’s e-mail or phone flagged as spam on that day.', 'Works Fine': 'Green = the check found this person’s e-mail and phone working fine on that day.', 'Sales People': 'The sales people in this check-in.', 'Granola Link': 'Opens the check-in’s Granola note.', 'Check-in Summary': 'What was discussed (hover for the full text).' });
+Object.assign(HINTS, { Emails: 'Works = this person’s e-mails were delivered normally that day; Spam = they landed in spam / were flagged. Not checked = not looked at yet.', 'Phone Calls': 'Works = calls from this person’s number came through normally that day; Spam = they showed as “Spam risk” or were blocked.', Texts: 'Works = texts from this person’s number were delivered normally that day; Spam = they were filtered or flagged.', 'Spam Notes': 'What the check found: which carrier or inbox flagged it, screenshots taken, next steps.', Notes: 'What the check found (hover for the full text).', 'Sales People': 'The sales people in this check-in.', 'Granola Link': 'Opens the check-in’s Granola note.', 'Check-in Summary': 'What was discussed (hover for the full text).' });
 const hint = (c) => HINTS[c] || (c.startsWith('Moved to ') ? `Deals that entered the “${c.slice(9)}” stage in the selected dates (a new deal counts as entering its first stage).` : c.startsWith('Open now: ') ? `Deals currently sitting in the “${c.slice(10)}” stage, whatever the dates.` : '');
 const KPI_TIPS = {
   'Closed Won': 'Deals in the Sales Pipeline’s Closed Won stage, dated in the selected dates by their Airtable Client Date (the day the client was confirmed).\nA deal with no Airtable client record is dated by its HubSpot close date, in the deal owner’s time zone.\nThis matches Closed Won Check, so both tabs count a deal on the same day. It is still HubSpot’s list of won deals: a win still needs proof of call and payment (see Closed Won Check) before it earns commission.',
@@ -709,12 +716,8 @@ function cell(col, v, r = {}) {
   if (col === 'Check-in Summary' || col === 'Summary') { const t = mdText(v); return `<td class="l txt"><div class="clamp" title="${esc(t)}">${esc(t) || '<span class="dim">—</span>'}</div></td>`; }
   if (col === 'Sales People') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (col === 'Granola Note') return `<td class="l">${v ? `<a class="open" href="${esc(v)}" target="_blank" rel="noopener">Open ↗</a>` : '<span class="dim">—</span>'}</td>`;
-  if (col === 'Spam Detected' || col === 'Works Fine') {
-    if (v === 'Spam detected') return '<td><span class="pill bad">Spam detected</span></td>';
-    if (v === 'Works fine') return '<td><span class="pill good">Works fine</span></td>';
-    if (v === 'Not marked') return '<td><span class="pill na">Not marked</span></td>';
-    return '<td class="dim">—</td>';
-  }
+  if (col === 'Emails' || col === 'Phone Calls' || col === 'Texts') return `<td>${spamPill(v)}</td>`;
+  if (col === 'Notes') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (v === 'Yes' || v === 'No' || v === 'NA') return `<td><span class="pill ${v === 'Yes' ? 'good' : v === 'No' ? 'bad' : 'na'}">${v}</span></td>`;
   if (col === 'Attendees' || col === 'Summary' || col === 'Meeting') return `<td class="l txt"><div class="clamp" title="${esc(v)}">${esc(v) || '<span class="dim">—</span>'}</div></td>`;
   if (['Team Member', 'Person', 'Owner', 'Metric', 'Source', 'Currency', 'Raised By'].includes(col)) return `<td class="l">${esc(v)}</td>`;
@@ -733,45 +736,53 @@ function table(id, rows) {
   body = body.filter((r) => !isTot(r));
   if (s) body.sort((a, b) => { const x = num(a[s.col]), y = num(b[s.col]); return (x != null && y != null ? x - y : String(a[s.col]).localeCompare(String(b[s.col]))) * s.dir; });
   body.push(...tot);
-  const left = ['Attendees', 'Summary', 'Meeting', 'Granola Note', 'Possible Call', 'Owner', 'Person', 'Date', 'Client', 'HubSpot Closed', 'Source', 'Status', 'Details', 'HubSpot', 'Discrepancy', 'Month', 'Currency', 'Rule', 'Raised', 'Reason', 'Proof', 'Raised By', 'Resolution', 'Thread', 'Sales People', 'Granola Link', 'Check-in Summary'];
+  const left = ['Attendees', 'Summary', 'Meeting', 'Granola Note', 'Possible Call', 'Owner', 'Person', 'Date', 'Client', 'HubSpot Closed', 'Source', 'Status', 'Details', 'HubSpot', 'Discrepancy', 'Month', 'Currency', 'Rule', 'Raised', 'Reason', 'Proof', 'Raised By', 'Resolution', 'Thread', 'Sales People', 'Granola Link', 'Check-in Summary', 'Notes'];
   const head = cols.map((c, i) => `<th data-c="${esc(c)}" class="${i === 0 || left.includes(c) ? 'l' : ''} ${s && s.col === c ? 'sorted' : ''}">${esc(c)}${ic(hint(c))}<span class="ar">${s && s.col === c ? (s.dir === 1 ? '↑' : '↓') : '↕'}</span>${TARGETS[c] != null ? `<small>target ${TARGETS[c]}${c === 'Average Call Duration' ? ' min' : '%'}+</small>` : ''}</th>`).join('');
   if (q && !body.some((r) => !isTot(r))) return '<div class="empty"><b>No matches</b>Nothing in this table matches “' + esc(S.q) + '”.</div>';
   return `<div class="scroller"><table><thead><tr>${head}</tr></thead><tbody>${body.map((r) => `<tr class="${isTot(r) ? 'team' : ''}">${cols.map((c) => cell(c, r[c], r)).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 
-// ---------- Spam Check: Guillermo ticks e-mail / phone per team member per day; everyone else views ----------
+// ---------- Spam Check: Guillermo marks e-mails / calls / texts as Works or Spam per team member per day (+ notes) ----------
 function spamView(v, note) {
   const sp = S.D.spam || { team: [], checks: {} }, edit = S.D.me && S.D.me.spam === 'edit';
   if (S.mode === 'day') {
     const day = sel()[0], got = sp.checks[day] || {};
-    const cells = SPAM_COLS.map(([k, col, on, off, tone]) => `<th>${col}${ic(HINTS[col])}</th>`).join('');
-    const box = (m, [k, , on, off, tone], val) => (edit ? `<label class="spamcb ${tone}"><input type="checkbox" data-sm="${esc(m)}" data-sk="${k}" ${val ? 'checked' : ''}><span>${val ? on : off}</span></label>`
-      : k === 'email' || k === 'phone' ? `<span class="pill ${val ? 'good' : 'bad'}">${val ? 'Yes' : 'No'}</span>` : val ? `<span class="pill ${tone === 'red' ? 'bad' : 'good'}">${on}</span>` : '<span class="dim">—</span>');
-    v.innerHTML = `<div class="scroller"><table><thead><tr><th class="l">Team Member</th>${cells}</tr></thead><tbody>${sp.team.map((m) => { const c = got[m] || {}; return `<tr><td class="l">${esc(m)}</td>${SPAM_COLS.map((x) => `<td>${box(m, x, c[x[0]])}</td>`).join('')}</tr>`; }).join('')}</tbody></table></div>`;
-    if (edit) v.querySelectorAll('input[data-sm]').forEach((cb) => (cb.onchange = () => {
-      // Spam Detected and Works Fine exclude each other: ticking one clears the other
-      const other = { spam: 'ok', ok: 'spam' }[cb.dataset.sk];
-      if (other && cb.checked) { const o = v.querySelector(`input[data-sm="${CSS.escape(cb.dataset.sm)}"][data-sk="${other}"]`); o.checked = false; }
-      saveSpam(day, cb.dataset.sm, v);
-    }));
+    const head = SPAM_CH.map(([, col]) => `<th>${col}${ic(HINTS[col])}</th>`).join('') + `<th class="l">Notes${ic(HINTS['Spam Notes'])}</th>`;
+    const pick = (m, k, val) => (edit
+      ? `<select class="spamsel ${val}" data-sm="${esc(m)}" data-sk="${k}" aria-label="${esc(m)}: ${SPAM_CH.find((x) => x[0] === k)[1]}">${SPAM_RES.map(([r, t]) => `<option value="${r}" ${val === r ? 'selected' : ''}>${t}</option>`).join('')}</select>`
+      : spamPill(val));
+    const notes = (m, c) => { const dk = `spam:${day}:${m}`, val = dk in S.drafts ? S.drafts[dk] : c.notes || '';
+      return edit ? `<textarea class="spamnote" rows="1" maxlength="1000" data-sm="${esc(m)}" data-draft="${esc(dk)}" placeholder="Findings, if any…" aria-label="${esc(m)}: notes">${esc(val)}</textarea>`
+        : val ? `<div class="spamnotes">${esc(val)}</div>` : '<span class="dim">—</span>'; };
+    v.innerHTML = `<div class="scroller"><table class="spamtbl"><thead><tr><th class="l">Team Member</th>${head}</tr></thead><tbody>${sp.team.map((m) => { const c = got[m] || {};
+      return `<tr><td class="l">${esc(m)}</td>${SPAM_CH.map(([k]) => `<td>${pick(m, k, c[k] || '')}</td>`).join('')}<td class="l">${notes(m, c)}</td></tr>`; }).join('')}</tbody></table></div>`;
+    if (edit) {
+      v.querySelectorAll('select[data-sm]').forEach((el) => (el.onchange = () => { el.className = 'spamsel ' + el.value; saveSpam(day, el.dataset.sm, v); }));
+      // notes save when you leave the box, or after a short pause in typing
+      v.querySelectorAll('textarea.spamnote').forEach((ta) => {
+        let timer; const fit = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 2 + 'px'; }; fit();
+        ta.oninput = () => { fit(); clearTimeout(timer); timer = setTimeout(() => saveSpam(day, ta.dataset.sm, v), 1200); };
+        ta.onchange = () => { clearTimeout(timer); saveSpam(day, ta.dataset.sm, v); };
+      });
+    }
     return;
   }
   // date range: read-only history, newest day first; days before the first saved check are left out
   const [f, t] = sel(), first = Object.keys(sp.checks).sort()[0];
-  if (!first) { v.innerHTML = '<div class="empty"><b>No spam checks saved in these dates</b>Pick a single day to see (or tick) that day’s checks.</div>'; return; }
+  if (!first) { v.innerHTML = '<div class="empty"><b>No spam checks saved in these dates</b>Pick a single day to see (or mark) that day’s checks.</div>'; return; }
   const rows = [];
   for (let d = t > today ? today : t; d >= (f > first ? f : first); d = shift(d, -1))
-    for (const m of sp.team) { const c = (sp.checks[d] || {})[m]; rows.push({ Date: d, 'Team Member': m, 'Email Spam Checked': c && c.email ? 'Yes' : 'No', 'Phone Spam Checked': c && c.phone ? 'Yes' : 'No', ...verdict(c) }); }
+    for (const m of sp.team) { const c = (sp.checks[d] || {})[m] || {}; rows.push({ Date: d, 'Team Member': m, ...Object.fromEntries(SPAM_CH.map(([k, col]) => [col, SPAM_TXT[c[k] || '']])), Notes: c.notes || '' }); }
   v.innerHTML = table('spam', rows);
   v.querySelectorAll('th[data-c]').forEach((th) => (th.onclick = (e) => { if (e.target.closest('.i')) return; const s = S.sort.spam; S.sort.spam = { col: th.dataset.c, dir: s && s.col === th.dataset.c && s.dir === 1 ? -1 : 1 }; render(); }));
-  const full = rows.filter((r) => r['Email Spam Checked'] === 'Yes' && r['Phone Spam Checked'] === 'Yes').length;
-  note.textContent = `${full} of ${rows.length} person-days fully checked (e-mail and phone)`; note.hidden = false;
+  const full = rows.filter((r) => SPAM_CH.every(([, col]) => r[col] !== SPAM_TXT[''])).length, flagged = rows.filter((r) => SPAM_CH.some(([, col]) => r[col] === 'Spam')).length;
+  note.textContent = `${full} of ${rows.length} person-days fully checked (e-mails, calls and texts) · ${flagged} with spam found`; note.hidden = false;
 }
-// Spam Detected / Works Fine for the date-range history. Only one can be ticked, so the
-// ticked column names the result, the other shows a dash, and neither ticked reads "Not marked".
-const verdict = (c) => (c && c.spam ? { 'Spam Detected': 'Spam detected', 'Works Fine': '—' }
-  : c && c.ok ? { 'Spam Detected': '—', 'Works Fine': 'Works fine' }
-  : { 'Spam Detected': 'Not marked', 'Works Fine': 'Not marked' });
+// [stored key, column]; results: [stored value, dropdown label]
+const SPAM_CH = [['emails', 'Emails'], ['calls', 'Phone Calls'], ['texts', 'Texts']];
+const SPAM_RES = [['', 'Not checked'], ['works', 'Works'], ['spam', 'Spam']];
+const SPAM_TXT = { '': 'Not checked', works: 'Works', spam: 'Spam' };
+const spamPill = (val) => (val === 'works' || val === 'Works' ? '<span class="pill good">Works</span>' : val === 'spam' || val === 'Spam' ? '<span class="pill bad">Spam</span>' : '<span class="pill na">Not checked</span>');
 // ---------- Feedback: Yash / Shreyans give feedback to a sales person; that person (and the givers) comment ----------
 // unsaved text in any [data-draft] box survives re-renders (the page reloads its data every 5 minutes)
 S.drafts = {};
@@ -966,26 +977,27 @@ async function granolaSummary(draft) {
   }
 }
 
-// [stored key, column, ticked label, unticked label, colour]
-const SPAM_COLS = [['email', 'Email Spam Checked', 'Checked', 'Not yet', 'green'], ['phone', 'Phone Spam Checked', 'Checked', 'Not yet', 'green'], ['spam', 'Spam Detected', 'Spam detected', 'Spam detected', 'red'], ['ok', 'Works Fine', 'Works fine', 'Works fine', 'green']];
-// saves run one after another so two quick ticks can't overwrite each other
+// saves run one after another so two quick changes can't overwrite each other; each save sends the whole row
 let spamQ = Promise.resolve();
 function saveSpam(day, member, v) {
-  const q = (k) => v.querySelector(`input[data-sm="${CSS.escape(member)}"][data-sk="${k}"]`);
-  const show = (k, val) => { const col = SPAM_COLS.find((x) => x[0] === k); q(k).checked = !!val; q(k).nextElementSibling.textContent = val ? col[2] : col[3]; };
-  const body = { date: day, member };
-  for (const [k] of SPAM_COLS) { body[k] = q(k).checked; show(k, body[k]); q(k).disabled = true; }
+  const q = (k) => v.querySelector(`[data-sm="${CSS.escape(member)}"][data-sk="${k}"]`), ta = v.querySelector(`textarea[data-sm="${CSS.escape(member)}"]`);
+  if (!ta) return;
+  const body = { date: day, member, notes: ta.value };
+  for (const [k] of SPAM_CH) body[k] = q(k).value;
+  const saved = (S.D.spam.checks[day] || {})[member] || {};
+  if (SPAM_CH.every(([k]) => (saved[k] || '') === body[k]) && (saved.notes || '') === body.notes.trim()) return; // nothing changed
   spamQ = spamQ.then(async () => {
     const note = $('note');
     try {
       const { check } = await api('/api/spam', body);
       const sp = S.D.spam; (sp.checks[day] = sp.checks[day] || {})[member] = check;
+      if (S.drafts[`spam:${day}:${member}`] === ta.value) delete S.drafts[`spam:${day}:${member}`];
+      if (note.textContent.startsWith('Could not save')) note.hidden = true;
     } catch (err) {
       const old = ((S.D.spam.checks[day] || {})[member]) || {};
-      for (const [k] of SPAM_COLS) show(k, old[k]);
+      for (const [k] of SPAM_CH) { const el = q(k); if (el) { el.value = old[k] || ''; el.className = 'spamsel ' + el.value; } }
       note.textContent = 'Could not save: ' + err.message; note.hidden = false;
     }
-    for (const [k] of SPAM_COLS) q(k).disabled = false;
   });
 }
 
