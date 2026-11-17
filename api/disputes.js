@@ -6,9 +6,10 @@ const notify = require('../lib/notify');
 // Signed-in users only.
 // GET -> the discrepancies this user may see (Yash / Shreyans: all; others: the ones they raised or about their deals).
 // POST { action: 'raise', ... }        any user          -> e-mails Yash (DISPUTE_NOTIFY_TO)
-// POST { action: 'comment', id, message, files }  Yash / the deal's rep / the raiser -> e-mails the others
+// POST { action: 'comment', id, message, files }  Yash / the deal's rep / the raiser -> e-mails Yash
 // POST { action: 'edit', id, reason, details, link }  the raiser, while open;  { action: 'edit', id, comment, message }  the comment's author
-// POST { action: 'resolve', id, decision: accepted|rejected|open, note }   Yash / Shreyans (RESOLVERS), any time -> e-mails the rep and the raiser
+// POST { action: 'resolve', id, decision: accepted|rejected|open, note }   Yash / Shreyans (RESOLVERS), any time -> e-mails Yash
+// Every discrepancy e-mail goes only to Yash, in one thread per day raised (see lib/notify.js).
 module.exports = async (req, res) => {
   const user = await authorize(req, res);
   if (!user) return;

@@ -7,7 +7,7 @@ process.env.DISPUTES_STORE = 'local'; // in-memory store below unless a test swi
 const mem = {}, sent = [];
 const fake = (file, exports) => { require.cache[path.join(__dirname, '../lib', file)] = { id: file, loaded: true, exports }; };
 fake('store.js', { get: async (k) => (mem[k] ? JSON.parse(mem[k]) : null), put: async (k, v) => { mem[k] = JSON.stringify(v); } });
-fake('mailer.js', { configured: () => true, send: async (to, subject, html, text) => { sent.push({ to, subject, html, text }); } });
+fake('mailer.js', { configured: () => true, send: async (to, subject, html, text, bcc, headers) => { sent.push({ to, subject, html, text, headers }); } });
 const disputes = require('../lib/disputes');
 const notify = require('../lib/notify');
 const authApi = require('../api/auth');
@@ -60,29 +60,31 @@ test('raise: the raiser is the signed-in user; validation; one open discrepancy 
   assert.deepEqual(r.body.dispute.attachments.map((a) => a.name), ['shot.png']);
   assert.equal(sent.length, 1);
   assert.equal(sent[0].to, 'yash@riseresearch.com');
-  assert.match(sent[0].subject, /raised: Lisa Murayama \(Arth Agarwal\)/);
+  assert.match(sent[0].subject, /^Commission discrepancies raised on \d{1,2} \w{3} \d{4}$/);
+  assert.match(sent[0].html, /raised on the Sales Portal for <b>Lisa Murayama \(Arth Agarwal\)<\/b>/);
   assert.match(sent[0].html, /1 file attached/);
   assert.match(sent[0].html, /http:\/\/portal\.test\/#disputes|https:\/\/portal\.test\/#disputes/);
   assert.equal((await as(ARTH, { action: 'raise', dealId: 'D1', details: 'again' })).statusCode, 409);
 });
 
-test('conversation: Yash / Shreyans, the rep and the raiser can comment (with files); others cannot; each comment e-mails the others', async () => {
+test('conversation: Yash / Shreyans, the rep and the raiser can comment (with files); others cannot; each comment e-mails Yash only', async () => {
   const [d] = await disputes.list();
   sent.length = 0;
   const y = await as(YASH, { action: 'comment', id: d.id, message: 'Can you share the Zoom recording?' });
   assert.equal(y.statusCode, 200);
-  assert.deepEqual(sent.at(-1).to.split(','), ['arth@riseresearch.com']); // Yash is not e-mailed about his own comment
-  assert.match(sent.at(-1).subject, /New comment on discrepancy: Lisa Murayama/);
+  assert.equal(sent.length, 0); // only Yash is e-mailed, and never about his own comment
   const a = await as(ARTH, { action: 'comment', id: d.id, message: 'Here it is', files: [PNG] });
   assert.equal(a.statusCode, 200);
   assert.deepEqual(sent.at(-1).to.split(','), ['yash@riseresearch.com']);
+  assert.match(sent.at(-1).subject, /^Commission discrepancies raised on /); // same day thread as the "raised" mail
+  assert.match(sent.at(-1).headers.inReplyTo, /^<discrepancies-\d{4}-\d{2}-\d{2}@/);
   assert.equal((await as(ARTH, { action: 'comment', id: d.id, message: '' })).statusCode, 400);
   assert.equal((await as(DIEGO, { action: 'comment', id: d.id, message: 'hi' })).statusCode, 403); // another rep
   const [after] = await disputes.list();
   assert.deepEqual(after.comments.map((c) => [c.author, c.message, c.attachments.length]), [['Yash Mundada', 'Can you share the Zoom recording?', 0], ['Arth Agarwal', 'Here it is', 1]]);
 });
 
-test('resolve: Yash / Shreyans only; status can be changed again or reopened; the rep and the raiser are e-mailed', async () => {
+test('resolve: Yash / Shreyans only; status can be changed again or reopened; only Yash is e-mailed', async () => {
   const [d] = await disputes.list();
   assert.equal((await as(ARTH, { action: 'resolve', id: d.id, decision: 'accepted' })).statusCode, 403);
   assert.equal((await as(YASH, { action: 'resolve', id: d.id, decision: 'maybe' })).statusCode, 400);
@@ -91,30 +93,30 @@ test('resolve: Yash / Shreyans only; status can be changed again or reopened; th
   assert.equal(r.statusCode, 200);
   assert.equal(r.body.dispute.status, 'accepted');
   assert.equal(r.body.dispute.resolvedBy, 'Yash Mundada');
-  assert.equal(sent[0].to, 'arth@riseresearch.com');
-  assert.match(sent[0].subject, /Discrepancy accepted: Lisa Murayama/);
+  assert.equal(sent.length, 0); // Yash made the decision himself: nobody else is e-mailed
   assert.equal((await as(YASH, { action: 'resolve', id: d.id, decision: 'accepted' })).statusCode, 409); // no change
-  // Shreyans can change the decision later, and reopen it; each change e-mails the rep
+  // Shreyans can change the decision later, and reopen it; each change e-mails Yash in the same thread
   sent.length = 0;
   const ch = await as(SHREYANS, { action: 'resolve', id: d.id, decision: 'rejected', note: 'Payment bounced' });
   assert.equal(ch.statusCode, 200);
   assert.deepEqual([ch.body.dispute.status, ch.body.dispute.resolvedBy, ch.body.dispute.note], ['rejected', 'Shreyans Lodha', 'Payment bounced']);
-  assert.match(sent[0].subject, /Discrepancy rejected \(changed from accepted\): Lisa Murayama/);
+  assert.equal(sent[0].to, 'yash@riseresearch.com'); assert.match(sent[0].subject, /^Commission discrepancies raised on /);
+  assert.match(sent[0].html, /was <b>rejected<\/b> \(changed from accepted\)/);
   const ro = await as(SHREYANS, { action: 'resolve', id: d.id, decision: 'open' });
   assert.equal(ro.statusCode, 200);
   assert.deepEqual([ro.body.dispute.status, ro.body.dispute.resolvedBy, ro.body.dispute.note], ['open', '', '']);
-  assert.match(sent[1].subject, /Discrepancy reopened: Lisa Murayama/);
+  assert.match(sent[1].html, /was <b>reopened<\/b>/); assert.equal(sent[1].to, 'yash@riseresearch.com');
   assert.equal((await as(DIEGO, { action: 'resolve', id: d.id, decision: 'accepted' })).statusCode, 403);
   assert.equal((await as(YASH, { action: 'resolve', id: d.id, decision: 'accepted' })).statusCode, 200);
   // a resolved deal can be raised again
   assert.equal((await as(ARTH, { action: 'raise', dealId: 'D1', client: 'Lisa Murayama', details: 'new issue' })).statusCode, 200);
 });
 
-test('a discrepancy raised by someone else for a rep: rep, raiser and Yash are all in the conversation', async () => {
+test('a discrepancy raised by someone else for a rep: rep, raiser and Yash are all in the conversation, only Yash is e-mailed', async () => {
   const r = await as(SHREYANS, { action: 'raise', dealId: 'D7', client: 'Raja Kukkadapu', rep: 'Arth Agarwal', reason: 'Deal belongs to another rep', details: 'I took this call' });
   sent.length = 0;
   assert.equal((await as(ARTH, { action: 'comment', id: r.body.dispute.id, message: 'Agreed' })).statusCode, 200);
-  assert.deepEqual(sent.at(-1).to.split(',').sort(), ['shreyans@riseresearch.com', 'yash@riseresearch.com']);
+  assert.deepEqual(sent.at(-1).to.split(','), ['yash@riseresearch.com']);
   assert.equal((await as(SHREYANS, { action: 'comment', id: r.body.dispute.id, message: 'thanks' })).statusCode, 200);
 });
 
@@ -162,13 +164,26 @@ test('Airtable backend: records, comment link, attachment uploads, Status set in
   } finally { global.fetch = realFetch; process.env.DISPUTES_STORE = 'local'; delete process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN; }
 });
 
-test('notify.message: subjects for each kind', () => {
-  const d = { client: 'C', rep: 'Arth Agarwal', reason: 'Other', raisedByEmail: 'shreyans@riseresearch.com', status: 'rejected', attachments: [] };
-  assert.match(notify.message('raised', d).subject, /^Commission discrepancy raised: C \(Arth Agarwal\)$/);
-  assert.match(notify.message('comment', d, { comment: { author: 'Yash', message: 'm', attachments: [] } }).subject, /^New comment on discrepancy/);
+test('notify.message: one subject per raised day, every mail only to Yash', () => {
+  const d = { client: 'C', rep: 'Arth Agarwal', reason: 'Other', raisedByEmail: 'shreyans@riseresearch.com', status: 'rejected', attachments: [], at: '2026-11-16T09:00:00Z' };
+  const c = notify.message('comment', d, { comment: { author: 'Arth', message: 'm', attachments: [] } });
   const m = notify.message('resolved', d);
-  assert.match(m.subject, /^Discrepancy rejected: C/);
-  assert.deepEqual(m.to.sort(), ['arth@riseresearch.com', 'shreyans@riseresearch.com']);
+  for (const x of [notify.message('raised', d), c, m, notify.message('resolved', { ...d, status: 'open' })]) {
+    assert.equal(x.subject, 'Commission discrepancies raised on 16 Nov 2026');
+    assert.deepEqual(x.to, ['yash@riseresearch.com']);
+  }
+  assert.match(m.html, /discrepancy for <b>C \(Arth Agarwal\)<\/b> was <b>rejected<\/b>/);
+  assert.equal(notify.message('raised', { ...d, at: '2026-11-17T09:00:00Z' }).subject, 'Commission discrepancies raised on 17 Nov 2026');
+});
+
+test('notify: all discrepancies raised on the same day (IST) share one thread; other days get their own', () => {
+  const h = (kind, id, at) => notify.threadHeaders(kind, { id, at });
+  const a = h('raised', 'rec1', '2026-11-16T04:00:00Z'), b = h('raised', 'rec2', '2026-11-16T17:00:00Z'); // 9:30 and 22:30 IST
+  const later = h('comment', 'rec1', '2026-11-16T04:00:00Z'); // a comment days later stays in the day it was raised
+  assert.match(a.inReplyTo, /^<discrepancies-2026-11-16@[^>]+>$/);
+  assert.equal(b.inReplyTo, a.inReplyTo); assert.equal(later.inReplyTo, a.inReplyTo); assert.deepEqual(b.references, [a.inReplyTo]);
+  assert.notEqual(a.messageId, b.messageId);
+  assert.notEqual(h('raised', 'rec3', '2026-11-16T19:00:00Z').inReplyTo, a.inReplyTo); // 00:30 IST on the 17th
 });
 
 test('e-mails only promise "counts as verified" for discrepancies linked to a deal', () => {
