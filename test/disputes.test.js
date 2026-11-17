@@ -162,3 +162,19 @@ test('e-mails only promise "counts as verified" for discrepancies linked to a de
   assert.doesNotMatch(general, /verified/); assert.match(general, /Accepted/);
   assert.match(notify.message('raised', { ...base, dealId: null }).html, /not linked to a Closed Won deal/);
 });
+
+test('visibility: Yash and Shreyans see every discrepancy; anyone else only theirs', () => {
+  const list = [
+    { id: 'a', rep: 'Arth Agarwal', raisedByEmail: 'arth@riseresearch.com' },
+    { id: 'b', rep: 'Paula Jimenez', raisedByEmail: 'paula@riseresearch.com' },
+    { id: 'c', rep: 'Arth Agarwal', raisedByEmail: 'ramya@riseresearch.com' }, // about Arth's deal, raised by someone else
+    { id: 'd', rep: 'Diego Alvarez', raisedByEmail: 'arth@riseresearch.com' }, // raised by Arth about another rep's deal
+  ];
+  const ids = (u) => disputes.visibleTo(u, list).map((d) => d.id);
+  assert.deepEqual(ids(YASH), ['a', 'b', 'c', 'd']);
+  assert.deepEqual(ids(SHREYANS), ['a', 'b', 'c', 'd']);
+  assert.deepEqual(ids(ARTH), ['a', 'c', 'd']);
+  assert.deepEqual(ids({ email: 'paula@riseresearch.com', name: 'Paula Jimenez' }), ['b']);
+  assert.deepEqual(ids({ email: 'nobody@riseresearch.com', name: 'Nobody' }), []);
+  assert.deepEqual(ids(null), []);
+});

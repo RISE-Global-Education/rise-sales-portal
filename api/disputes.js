@@ -4,7 +4,7 @@ const disputes = require('../lib/disputes');
 const notify = require('../lib/notify');
 
 // Signed-in users only.
-// GET -> all discrepancies (with comments and attachments).
+// GET -> the discrepancies this user may see (Yash / Shreyans: all; others: the ones they raised or about their deals).
 // POST { action: 'raise', ... }        any user          -> e-mails Yash (DISPUTE_NOTIFY_TO)
 // POST { action: 'comment', id, message, files }  Yash / the deal's rep / the raiser -> e-mails the others
 // POST { action: 'resolve', id, decision, note }   Yash only (RESOLVERS) -> e-mails the rep and the raiser
@@ -12,7 +12,7 @@ module.exports = async (req, res) => {
   const user = await authorize(req, res);
   if (!user) return;
   try {
-    if (req.method === 'GET') return json(res, 200, { disputes: await disputes.list(), reasons: disputes.REASONS });
+    if (req.method === 'GET') return json(res, 200, { disputes: disputes.visibleTo(user, await disputes.list()), reasons: disputes.REASONS });
     if (req.method !== 'POST') return json(res, 405, { error: 'GET or POST' });
     const b = await body(req);
     const host = req.headers['x-forwarded-host'] || req.headers.host;
