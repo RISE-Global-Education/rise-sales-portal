@@ -17,6 +17,7 @@ process.env.YASH_PASSWORD = 'yash-env-pass';
 const YASH = { email: 'yash@riseresearch.com', name: 'Yash Mundada' };
 const ARTH = { email: 'arth@riseresearch.com', name: 'Arth Agarwal' };
 const SHREYANS = { email: 'shreyans@riseresearch.com', name: 'Shreyans Lodha' };
+const DIEGO = { email: 'diego@riseresearch.com', name: 'Diego Alvarez' };
 const PNG = { name: 'shot.png', type: 'image/png', data: Buffer.from('fake png bytes').toString('base64') };
 
 // sign in for real through the login API (Yash: YASH_PASSWORD; others: their e-mail) and keep the cookie
@@ -65,7 +66,7 @@ test('raise: the raiser is the signed-in user; validation; one open discrepancy 
   assert.equal((await as(ARTH, { action: 'raise', dealId: 'D1', details: 'again' })).statusCode, 409);
 });
 
-test('conversation: Yash, the rep and the raiser can comment (with files); others cannot; each comment e-mails the others', async () => {
+test('conversation: Yash / Shreyans, the rep and the raiser can comment (with files); others cannot; each comment e-mails the others', async () => {
   const [d] = await disputes.list();
   sent.length = 0;
   const y = await as(YASH, { action: 'comment', id: d.id, message: 'Can you share the Zoom recording?' });
@@ -76,12 +77,12 @@ test('conversation: Yash, the rep and the raiser can comment (with files); other
   assert.equal(a.statusCode, 200);
   assert.deepEqual(sent.at(-1).to.split(','), ['yash@riseresearch.com']);
   assert.equal((await as(ARTH, { action: 'comment', id: d.id, message: '' })).statusCode, 400);
-  assert.equal((await as(SHREYANS, { action: 'comment', id: d.id, message: 'hi' })).statusCode, 403);
+  assert.equal((await as(DIEGO, { action: 'comment', id: d.id, message: 'hi' })).statusCode, 403); // another rep
   const [after] = await disputes.list();
   assert.deepEqual(after.comments.map((c) => [c.author, c.message, c.attachments.length]), [['Yash Mundada', 'Can you share the Zoom recording?', 0], ['Arth Agarwal', 'Here it is', 1]]);
 });
 
-test('resolve: only Yash; accepted / rejected once; the rep and the raiser are e-mailed', async () => {
+test('resolve: Yash / Shreyans only; status can be changed again or reopened; the rep and the raiser are e-mailed', async () => {
   const [d] = await disputes.list();
   assert.equal((await as(ARTH, { action: 'resolve', id: d.id, decision: 'accepted' })).statusCode, 403);
   assert.equal((await as(YASH, { action: 'resolve', id: d.id, decision: 'maybe' })).statusCode, 400);
@@ -92,7 +93,19 @@ test('resolve: only Yash; accepted / rejected once; the rep and the raiser are e
   assert.equal(r.body.dispute.resolvedBy, 'Yash Mundada');
   assert.equal(sent[0].to, 'arth@riseresearch.com');
   assert.match(sent[0].subject, /Discrepancy accepted: Lisa Murayama/);
-  assert.equal((await as(YASH, { action: 'resolve', id: d.id, decision: 'rejected' })).statusCode, 409);
+  assert.equal((await as(YASH, { action: 'resolve', id: d.id, decision: 'accepted' })).statusCode, 409); // no change
+  // Shreyans can change the decision later, and reopen it; each change e-mails the rep
+  sent.length = 0;
+  const ch = await as(SHREYANS, { action: 'resolve', id: d.id, decision: 'rejected', note: 'Payment bounced' });
+  assert.equal(ch.statusCode, 200);
+  assert.deepEqual([ch.body.dispute.status, ch.body.dispute.resolvedBy, ch.body.dispute.note], ['rejected', 'Shreyans Lodha', 'Payment bounced']);
+  assert.match(sent[0].subject, /Discrepancy rejected \(changed from accepted\): Lisa Murayama/);
+  const ro = await as(SHREYANS, { action: 'resolve', id: d.id, decision: 'open' });
+  assert.equal(ro.statusCode, 200);
+  assert.deepEqual([ro.body.dispute.status, ro.body.dispute.resolvedBy, ro.body.dispute.note], ['open', '', '']);
+  assert.match(sent[1].subject, /Discrepancy reopened: Lisa Murayama/);
+  assert.equal((await as(DIEGO, { action: 'resolve', id: d.id, decision: 'accepted' })).statusCode, 403);
+  assert.equal((await as(YASH, { action: 'resolve', id: d.id, decision: 'accepted' })).statusCode, 200);
   // a resolved deal can be raised again
   assert.equal((await as(ARTH, { action: 'raise', dealId: 'D1', client: 'Lisa Murayama', details: 'new issue' })).statusCode, 200);
 });
@@ -142,7 +155,10 @@ test('Airtable backend: records, comment link, attachment uploads, Status set in
     assert.deepEqual(listed.comments.map((c) => c.id), [comment.id]);
     recs.tbluL9dBxK46KAzz2[0].fields.Status = 'Rejected'; // changed directly in Airtable
     assert.equal((await disputes.list(true))[0].status, 'rejected');
-    await assert.rejects(disputes.resolve(YASH, { id: d.id, decision: 'accepted' }), /already rejected/);
+    await assert.rejects(disputes.resolve(YASH, { id: d.id, decision: 'rejected' }), /already rejected/);
+    await disputes.resolve(SHREYANS, { id: d.id, decision: 'open' });
+    const patch = calls.filter((c) => c.method === 'PATCH').at(-1).body.fields;
+    assert.deepEqual([patch.Status, patch['Resolved By'], patch['Resolution Note']], ['Open', null, null]);
   } finally { global.fetch = realFetch; process.env.DISPUTES_STORE = 'local'; delete process.env.AIRTABLE_PERSONAL_ACCESS_TOKEN; }
 });
 

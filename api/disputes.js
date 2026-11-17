@@ -7,7 +7,7 @@ const notify = require('../lib/notify');
 // GET -> the discrepancies this user may see (Yash / Shreyans: all; others: the ones they raised or about their deals).
 // POST { action: 'raise', ... }        any user          -> e-mails Yash (DISPUTE_NOTIFY_TO)
 // POST { action: 'comment', id, message, files }  Yash / the deal's rep / the raiser -> e-mails the others
-// POST { action: 'resolve', id, decision, note }   Yash only (RESOLVERS) -> e-mails the rep and the raiser
+// POST { action: 'resolve', id, decision: accepted|rejected|open, note }   Yash / Shreyans (RESOLVERS), any time -> e-mails the rep and the raiser
 module.exports = async (req, res) => {
   const user = await authorize(req, res);
   if (!user) return;
