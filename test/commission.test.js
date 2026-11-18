@@ -248,3 +248,20 @@ test('Metrics Summary dates Closed Won by the Airtable Client Date, like Closed 
   assert.deepEqual(oct.verify.map((r) => r.Client), ['Client S']);
   assert.deepEqual(nov.verify.map((r) => r.Client), ['Client F']);
 });
+
+test('a no-show booked 30 min before recorded calls does not take their Granola notes (Daily Tracker)', () => {
+  // HubSpot: Carrie 00:30 (no-show), Rohan 01:00, Sudeep 01:30. Granola: Rohan 01:00, Sudeep 01:30. Sudeep's post-call was sent.
+  const mt = (id, iso, title) => ({ id, owner: '1', startMs: T(iso), title, outcome: 'SCHEDULED' });
+  const h = hs({
+    meetings: [mt('c', '2026-11-17T00:30:00Z', 'Carrie Gossett and Lucas Moreno'), mt('r', '2026-11-17T01:00:00Z', 'Rise Research Discovery Call with Rohan'), mt('s', '2026-11-17T01:30:00Z', 'Sudeep Ram and Lucas Moreno')],
+    meetingContacts: { c: ['C'], r: ['R'], s: ['S'] },
+    postCallEmails: [{ contact: 'S', ts: T('2026-11-17T03:00:00Z') }],
+  });
+  const notes = [note('nr', 1, 'r@x.com', '2026-11-17T01:00:00Z', { title: 'Rise Research Discovery Call with Rohan', durationMin: 19 }), note('ns', 1, 's@x.com', '2026-11-17T01:30:00Z', { title: 'Sudeep Ram and Lucas Moreno', durationMin: 23 })];
+  const b = build(h, notes);
+  const byId = Object.fromEntries(b.meetings.map((m) => [m.id, m]));
+  assert.equal(byId.c, undefined); // no note, no post-call -> not a meeting
+  assert.deepEqual([byId.r.granola, byId.r.durationMin, byId.s.granola, byId.s.durationMin], [true, 19, true, 23]);
+  const day = compute(b, '2026-11-16', '2026-11-17', '2026-11-17', '', { disputes: [], overdue: {} }).daily.filter((x) => x.Person === 'Lucas Moreno');
+  assert.deepEqual(day.map((x) => [x['No of Meets Taken'], x['Granola Recorded']]), [[2, 'Yes']]);
+});
