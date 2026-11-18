@@ -608,7 +608,7 @@ $('infoBtn').onclick = (e) => { e.stopPropagation(); $('pop').classList.toggle('
 async function load(silent = false) {
   syncControls();
   if (!silent) $('view').innerHTML = '<div class="spin">Loading…</div>';
-  const [f, t] = sel();
+  const [f, t] = sel(), edits = spamEdits, prev = S.D;
   let resp;
   try { resp = await fetch(`/api/data?from=${f}&to=${t}&rep=${encodeURIComponent(S.reps.join('|'))}&country=${encodeURIComponent(S.countries.join('|'))}`); }
   catch { $('view').innerHTML = '<div class="empty"><b>Can’t reach the server</b>Check that it is running, then reload.</div>'; return; }
@@ -617,7 +617,8 @@ async function load(silent = false) {
   if (r.error) { $('view').innerHTML = `<div class="empty"><b>Something went wrong</b>${esc(r.error)}</div>`; return; }
   if (r.loading) { $('view').innerHTML = '<div class="empty"><b>Loading data from HubSpot and Granola</b>The first load takes a few minutes. This page will update by itself.</div>'; setTimeout(load, 10000); return; }
   try { sessionStorage.removeItem('salesSsoBounceAt'); } catch {}
-  S.D = r; TARGETS = r.targets || TARGETS; render();
+  if (edits !== spamEdits && prev && prev.spam && S.dKey === f + '|' + t) r.spam = prev.spam; // a Spam Check change landed while this was loading
+  S.D = r; S.dKey = f + '|' + t; TARGETS = r.targets || TARGETS; render();
 }
 // ---------- sign in / first-login password change (the whole portal needs a login) ----------
 async function api(url, b) {
@@ -1060,6 +1061,9 @@ async function granolaSummary(draft) {
 
 // saves run one after another so two quick changes can't overwrite each other; each save sends the whole row
 let spamQ = Promise.resolve();
+// bumped on every Spam Check change and again when its save finishes: a data reload that started before then would
+// put the older answer back on screen, so load() keeps the page's own spam checks instead
+let spamEdits = 0;
 function saveSpam(day, member, v) {
   const q = (k) => v.querySelector(`[data-sm="${CSS.escape(member)}"][data-sk="${k}"]`), ta = v.querySelector(`textarea[data-sm="${CSS.escape(member)}"]`);
   if (!ta) return;
@@ -1067,6 +1071,7 @@ function saveSpam(day, member, v) {
   for (const [k] of SPAM_CH) body[k] = q(k).value;
   const saved = (S.D.spam.checks[day] || {})[member] || {};
   if (SPAM_CH.every(([k]) => (saved[k] || '') === body[k]) && (saved.notes || '') === body.notes.trim()) return; // nothing changed
+  spamEdits++;
   spamQ = spamQ.then(async () => {
     const note = $('note');
     try {
@@ -1078,7 +1083,7 @@ function saveSpam(day, member, v) {
       const old = ((S.D.spam.checks[day] || {})[member]) || {};
       for (const [k] of SPAM_CH) { const el = q(k); if (el) { el.value = old[k] || ''; el.className = 'spamsel ' + el.value; } }
       note.textContent = 'Could not save: ' + err.message; note.hidden = false;
-    }
+    } finally { spamEdits++; }
   });
 }
 
