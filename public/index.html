@@ -133,6 +133,7 @@
   .shell { display:grid; grid-template-columns:260px minmax(0,1fr); min-height:100vh }
   .side { position:sticky; top:0; height:100vh; display:flex; flex-direction:column; background:var(--surface); border-right:1px solid var(--line) }
   .brand { font-family:"Red Hat Display", Inter, sans-serif; color:var(--accent); font-weight:600; font-size:16px; letter-spacing:-.2px; line-height:1.2; padding:16px 16px 14px; border-bottom:1px solid var(--line); white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+  .back-portal { display:inline-flex; align-items:center; gap:4px; margin-top:10px; padding:4px 10px; border:1px solid var(--line); border-radius:999px; color:var(--ink2); font:600 12px Inter, sans-serif; text-decoration:none } .back-portal:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-soft) }
   .brand small { display:block; color:var(--mute); font:500 12px Inter, sans-serif; letter-spacing:0; margin-top:2px }
   .rail { flex:1; overflow:auto; padding:12px 8px 16px; display:flex; flex-direction:column; gap:2px }
   .rail h4 { display:flex; align-items:center; margin:14px 12px 6px; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--mute); font-weight:600 }
@@ -701,6 +702,11 @@ function render() {
   if (D.me) {
     $('sideFoot').innerHTML = `<div class="av">${esc(initials(D.me.name))}</div><div class="who"><b>${esc(D.me.name)}</b><small>${esc(D.me.email)}${D.me.resolver ? ' · resolves discrepancies' : ''}</small><div class="links"><button id="outBtn">Sign out</button></div></div>`;
     $('outBtn').onclick = signOut;
+    // "← All portals": back to the RISE Internal Portal (only when sign-in goes through it).
+    const brand = document.querySelector('.side .brand');
+    if (D.portalUrl && brand && !brand.querySelector('.back-portal')) {
+      brand.insertAdjacentHTML('beforeend', `<br><a class="back-portal" href="${esc(D.portalUrl)}/">← All portals</a>`);
+    }
   }
   document.querySelector('.card').classList.toggle('bare', S.tab === 'dashboard' || S.tab === 'feedback' || (S.tab === 'checkin' && S.mode === 'day'));
 

@@ -1,4 +1,4 @@
-const { authorize } = require('../lib/auth');
+const { authorize, sso } = require('../lib/auth');
 const { json, query } = require('../lib/http');
 const service = require('../lib/service');
 const spam = require('../lib/spam');
@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
       // nor other reps' open-discrepancy counts in the Commission table
       if (!disputes.seesAll(user)) data.commission = (data.commission || []).map((r) => (r['Team Member'] === user.name ? r : { ...r, 'Open Discrepancies': '' }));
     }
-    json(res, 200, { ...data, spam: spamChecks, checkins: checkinList, feedback: feedbackList, me: user });
+    json(res, 200, { ...data, spam: spamChecks, checkins: checkinList, feedback: feedbackList, me: user, portalUrl: sso.enabled ? sso.portalUrl : null });
   }
   catch (e) { json(res, 500, { error: e.message }); }
 };
