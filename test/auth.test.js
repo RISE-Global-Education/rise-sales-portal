@@ -31,7 +31,7 @@ test('every rep signs in with their own e-mail as the password; nobody else can 
   for (const u of USERS.filter((x) => !x.passwordEnv)) {
     const r = await login(client(), u.email, u.email);
     assert.equal(r.statusCode, 200, u.email);
-    assert.deepEqual(r.body.user, { email: u.email, name: u.name, resolver: u.email === 'shreyans@riseresearch.com', spam: u.email === 'guillermo@riseresearch.com' ? 'edit' : 'view', checkin: ['arth@riseresearch.com', 'guillermo@riseresearch.com'].includes(u.email) ? 'edit' : 'view', feedback: u.email === 'shreyans@riseresearch.com' ? 'give' : u.email === 'sushant@riseresearch.com' ? null : 'rep' });
+    assert.deepEqual(r.body.user, { email: u.email, name: u.name, resolver: u.email === 'shreyans@riseresearch.com', spam: u.email === 'guillermo@riseresearch.com' ? 'edit' : 'view', checkin: ['arth@riseresearch.com', 'guillermo@riseresearch.com'].includes(u.email) ? 'edit' : 'view', feedback: u.email === 'shreyans@riseresearch.com' ? 'give' : u.email === 'sushanth@riseresearch.com' ? null : 'rep' });
   }
   assert.equal((await login(client(), ' ARTH@riseresearch.com ', 'Arth@RiseResearch.com')).statusCode, 200); // case / spaces do not matter
   assert.equal((await login(client(), 'arth@riseresearch.com', 'muskaan@riseresearch.com')).statusCode, 401); // someone else's e-mail

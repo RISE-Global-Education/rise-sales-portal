@@ -18,7 +18,7 @@ test('who gives, who receives', () => {
   assert.equal(feedbackAccess('yash@riseresearch.com', 'Yash Mundada'), 'give');
   assert.equal(feedbackAccess('shreyans@riseresearch.com', 'Shreyans Lodha'), 'give');
   assert.equal(feedbackAccess('paula@riseresearch.com', 'Paula Jimenez'), 'rep');
-  assert.equal(feedbackAccess('sushant@riseresearch.com', 'Sushant'), null);
+  assert.equal(feedbackAccess('sushanth@riseresearch.com', 'Sushant'), null);
 });
 
 test('a sales person sees only their own feedback and can comment on it', async () => {
